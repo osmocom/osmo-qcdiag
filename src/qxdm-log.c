@@ -134,7 +134,7 @@ static int dump_log(const uint8_t *data, const size_t len)
 		return -2;
 	}
 
-	printf("%d:%d:%d %-20s: ",
+	printf("%.2d:%.2d:%.2d %-20s: ",
 		tm->tm_hour, tm->tm_min, tm->tm_sec,
 		file);
 	printf(log, msg->params[0], msg->params[1], msg->params[2]);

@@ -1,9 +1,12 @@
 #include "framing.h"
+#include "protocol.h"
 #include "serial.h"
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -80,6 +83,65 @@ static int transmit_packet(int fd, const uint8_t *data, size_t data_len)
 	return 0;
 }
 
+static int dump_log(const uint8_t *data, const size_t len)
+{
+	size_t i, file_len;
+	size_t params = 0;
+	const struct ext_log_msg *msg;
+	const char *file = NULL, *log;
+	struct tm *tm;
+	time_t now;
+	const size_t str_len = len - offsetof(struct ext_log_msg, data);
+
+	time(&now);
+	tm = localtime(&now);
+
+	if (len < sizeof(struct ext_log_msg)) {
+		printf("too short log message.\n");
+		return -1;
+	}
+
+	msg = (struct ext_log_msg *) data;
+	log = (const char *) msg->data;
+
+	/*
+	 * Check if it is null terminated and how many parameters it
+	 * might have. This counts all '%' but doesn't take '%%' into
+	 * account.
+	 */
+	for (i = 0; i < str_len; ++i) {
+		if (log[i] == '%')
+			params += 1;
+		else if (log[i] == '\0' && i + 1 < str_len) {
+			file = &log[i + 1];
+			file_len = str_len - i - 1;
+			break;
+		}
+	}
+
+	if (file_len == 0 || file[file_len - 1] != '\0') {
+		printf("File too short or not null terminated\n");
+		return -2;
+	}
+
+	if (params > 3) {
+		printf("Too many parameters in the log message.\n");
+		return -1;
+	}
+
+	if (!file) {
+		printf("The file is not present..\n");
+		return -2;
+	}
+
+	printf("%d:%d:%d %-20s: ",
+		tm->tm_hour, tm->tm_min, tm->tm_sec,
+		file);
+	printf(log, msg->params[0], msg->params[1], msg->params[2]);
+	printf("\n");
+	return 0;
+}
+
 static int do_read(int fd, uint8_t *data)
 {
 	uint8_t buf[MAX_PACKET];
@@ -92,10 +154,19 @@ static int do_read(int fd, uint8_t *data)
 	}
 
 	rc = frame_unpack(buf, rc, data);	
-	if (rc > 0) {
+	if (rc <= 0)
+		return 0;
+
+
+	switch (data[0]) {
+	case 0x79:
+		dump_log(data, rc);
+		break;
+	default:
 		printf("Got %d data of payload\n", rc); 
 		printf("%s\n", DumpBYTEs(data, rc, 16, "\n", 0, ""));
-	}
+		break;
+	};
 
 	return rc;
 }
@@ -124,9 +195,11 @@ static void do_configure(int fd)
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00
 	};
+#if 0
 	static const uint8_t enable_evt_report[] = {
 		0x60, 0x01
 	};
+#endif
 	static const uint8_t disable_evt_report[] = {
 		0x60, 0x00
 	};
@@ -141,9 +214,11 @@ static void do_configure(int fd)
 	transmit_packet(fd, timestamp, sizeof(timestamp));
 	do_read(fd, data);
 
-	/* enable the event report */
-//	transmit_packet(fd, enable_evt_report, sizeof(enable_evt_report));
-//	do_read(fd, data);
+	/* enable|disable the event report */
+#if 0
+	transmit_packet(fd, enable_evt_report, sizeof(enable_evt_report));
+	do_read(fd, data);
+#endif
 	transmit_packet(fd, disable_evt_report, sizeof(disable_evt_report));
 	do_read(fd, data);
 

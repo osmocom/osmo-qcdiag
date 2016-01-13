@@ -26,6 +26,7 @@ enum gprs_rlc_ul_state {
 	US_TEST_MODE,
 	US_AWAIT_RECOVERY,
 };
+extern struct value_string gprs_rlc_ul_state_vals[8];
 
 enum gprs_rlc_ul_substate {
 	RALS_NULL,
@@ -33,6 +34,7 @@ enum gprs_rlc_ul_substate {
 	RALS_CURRENT_PDU_TX_COMPLETED,
 	RALS_COMPLETE,
 };
+extern struct value_string gprs_rlc_ul_substate_vals[5];
 
 enum gprs_rlc_dl_state {
 	DS_NULL,
@@ -42,6 +44,7 @@ enum gprs_rlc_dl_state {
 	DS_RX_UNACK_PENDING_RELEASE,
 	DS_TEST_MODE,
 };
+extern struct value_string gprs_rlc_dl_state_vals[7];
 
 struct gprs_rlc_ul_stats {
 	uint8_t	rlc_ul_state;
@@ -119,6 +122,8 @@ enum gprs_rlc_hdr_type {
 	EGPRS_HEADER_TYPE_2,
 	EGPRS_HEADER_TYPE_3
 };
+extern struct value_string gprs_rlc_hdr_type_vals[5];
+
 
 /* LOG_EGPRS_RLC_DL_HEADER_C */
 struct gprs_rlc_dl_header {

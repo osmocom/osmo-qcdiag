@@ -25,7 +25,7 @@ struct diag_log_config_set_mask {
 	uint8_t		data[0];
 } __attribute((packed));
 
-struct msgb *gen_log_config_set_mask(uint32_t last_item)
+struct msgb *gen_log_config_set_mask(uint32_t equip_id, uint32_t last_item)
 {
 	struct msgb *msg = msgb_alloc(MAX_PACKET, "Diag Tx");
 	struct diag_log_config_set_mask *dlcsm;
@@ -35,7 +35,7 @@ struct msgb *gen_log_config_set_mask(uint32_t last_item)
 	dlcsm = (struct diag_log_config_set_mask *) msg->l2h;
 	dlcsm->hdr.msg_type = DIAG_LOG_CONFIG_F;
 	dlcsm->hdr.operation = LOG_CONFIG_SET_MASK_OP;
-	dlcsm->equip_id = 5;
+	dlcsm->equip_id = equip_id;
 	dlcsm->last_item = last_item;
 	msg->l3h = msgb_put(msg, dlcsm->last_item/8);
 

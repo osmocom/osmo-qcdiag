@@ -5,6 +5,7 @@ enum gprs_mac_mode {
 	IDLE_MODE,
 	TRANSFER_MODE,
 };
+extern struct value_string gprs_mac_mode_vals[4];
 
 enum gprs_mac_null_substates {
 	NULL_INACTIVE,
@@ -20,6 +21,7 @@ enum gprs_mac_null_substates {
 	NULL_DTM_GTTP_UL_CON,
 	NULL_RESET,
 };
+extern struct value_string gprs_mac_null_substate_vals[13];
 
 enum gprs_mac_idle_substates {
 	IDLE_PASSIVE,
@@ -31,6 +33,7 @@ enum gprs_mac_idle_substates {
 	IDLE_UL_1PHASE_CONT_RES,
 	IDLE_DL_ASS,
 };
+extern struct value_string gprs_mac_idle_substate_vals[9];
 
 enum gprs_mac_transfer_substates {
 	TRANSFER_INACTIVE,
@@ -47,6 +50,7 @@ enum gprs_mac_transfer_substates {
 	TRANSFER_CONCURRENT_DYNAMIC_REALLOC,
 	TRANSFER_CONCURRENT_DL_REASSIGN_DYNAMIC_REALLOC,
 };
+extern struct value_string gprs_mac_transfer_substate_vals[14];
 
 /* LOG_GPRS_MAC_STATE_C */
 struct gprs_mac_state_change {
@@ -76,7 +80,7 @@ struct gprs_mac_dl_tbf_est {
 } __attribute__((packed));
 
 /* LOG_GPRS_MAC_UL_TBF_ESTABLISH_C */
-struct gprs_mcc_ul_tbf_est {
+struct gprs_mac_ul_tbf_est {
 	uint8_t tbf_req_cause;
 	uint8_t acc_granted;
 	uint8_t radio_prio;
@@ -120,6 +124,7 @@ enum gprs_mac_chan_type {
 	PBCCH_CHANNEL		= 0x82,
 	DL_PACCH_CHANNEL	= 0x83,
 };
+extern struct value_string gprs_mac_chan_type_vals[8];
 
 enum gprs_mac_msg_type {
 	PACKET_CELL_CHANGE_FAILURE		= 0x00,
@@ -139,6 +144,7 @@ enum gprs_mac_msg_type {
 	PACKET_CS_REQUEST			= 0x0e,
 	PACKET_CHANNEL_REQUEST			= 0x20,
 };
+extern struct value_string gprs_mac_msg_type_vals[17];
 
 struct evt_gprs_mac_msg {
 	uint8_t msg_type;

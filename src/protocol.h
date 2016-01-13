@@ -22,4 +22,55 @@ struct ext_log_msg {
 	uint8_t		data[0];	/* two NULL terminated strings from here */
 } __attribute__((packed));
 
+
+/* message header */
+struct diag_msg_hdr {
+	uint8_t		cmd_code;
+	uint8_t		timestamp_type;
+	uint8_t		num_args;
+	uint8_t		drop_count;
+	uint64_t	ts;
+} __attribute__((packed));
+
+/* message descriptor */
+struct diag_msg_desc {
+	uint16_t	line;
+	uint16_t	subsys_id;
+	uint16_t	subsys_mask;
+} __attribute__((packed));
+
+/* message header for DIAG_EXT_MSG_F */
+struct diag_msg_ext {
+	struct diag_msg_hdr	hdr;
+	struct diag_msg_desc	desc;
+	uint32_t		args[0];	/* see hdr.num_args */
+	/* followed by null-terminated strings */
+} __attribute__((packed));
+
+
+/* message header for DIAG_LOG_F */
+struct diag_log_hdr {
+	uint8_t		cmd_code;
+	uint8_t		more;
+	uint16_t	len;
+	uint8_t		data[0];
+} __attribute__((packed));
+
+struct log_hdr {
+	uint16_t	len;
+	uint16_t	code;
+	uint64_t	ts;
+	uint8_t		data[0];
+} __attribute__((packed));
+
+
+/* extended DIAG packet, */
+struct diagpkt_subsys_hdr {
+	uint8_t		command;	/* DIAG_SUBSYS_CMD_F */
+	uint8_t		subsys_id;
+	uint8_t		subsys_cmd_code;
+} __attribute__((packed));
+
+int diag_push_subsys_hdr(struct msgb *msg, uint8_t subsys, uint8_t code);
+
 #endif

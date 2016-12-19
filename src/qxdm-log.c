@@ -291,6 +291,22 @@ static void handle_mac_ul_tbf_est(struct log_hdr *lh, struct msgb *msg)
 		ute->tbf_req_cause, ute->acc_granted, ute->radio_prio, ute->peak_tput, ute->ul_tfi, ute->rlc_mode, ute->ul_ts_bmap, ute->is_egprs_tbf, ute->egprs_win_size, ute->resegment, ute->bep_period2);
 }
 
+static void handle_mac_dl_tbf_rel(struct log_hdr *lh, struct msgb *msg)
+{
+	struct gprs_mac_tbf_release *tr;
+	tr = (struct gprs_mac_tbf_release *) msgb_data(msg);
+
+	printf("MAC-DL-TBF-REL { tfi=%u, fail_cause=%u }\n", tr->tfi, tr->fail_cause);
+}
+
+static void handle_mac_ul_tbf_rel(struct log_hdr *lh, struct msgb *msg)
+{
+	struct gprs_mac_tbf_release *tr;
+	tr = (struct gprs_mac_tbf_release *) msgb_data(msg);
+
+	printf("MAC-DL-TBF-REL { tfi=%u, fail_cause=%u }\n", tr->tfi, tr->fail_cause);
+}
+
 static void handle_rlc_ul_evt_cnt(struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_rlc_ul_event_counts *uec;
@@ -355,6 +371,8 @@ static const struct log_dispatch_tbl log_tbl[] = {
 	{ GSM(LOG_GPRS_MAC_STATE_C), handle_mac_state },
 	{ GSM(LOG_GPRS_MAC_DL_TBF_ESTABLISH_C), handle_mac_dl_tbf_est },
 	{ GSM(LOG_GPRS_MAC_UL_TBF_ESTABLISH_C), handle_mac_ul_tbf_est },
+	{ GSM(LOG_GPRS_MAC_DL_TBF_RELEASE_C), handle_mac_dl_tbf_rel },
+	{ GSM(LOG_GPRS_MAC_UL_TBF_RELEASE_C), handle_mac_ul_tbf_rel },
 	{ GSM(LOG_GPRS_RLC_UL_STATS_C), handle_rlc_ul_stats },
 	{ GSM(LOG_GPRS_RLC_DL_STATS_C), handle_rlc_dl_stats },
 	{ UMTS(LOG_WCDMA_SIGNALING_MSG_C), handle_rrc_sig_msg },

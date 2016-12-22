@@ -21,9 +21,11 @@
 #include "diag_gsm.h"
 #include "log_codes_gsm.h"
 #include "log_codes_wcdma.h"
+#include "log_codes_qmi.h"
 #include "diag_wcdma.h"
 #include "gprs_rlc.h"
 #include "gprs_mac.h"
+#include "qmi_decode.h"
 
 char *DumpBYTEs(unsigned char *p, long n, int nBytesPerRow /* = 16 */, char *szLineSep /* = "\n" */, int bRaw /* = FALSE */, const char *szIndent /* = "" */)
 {
@@ -401,6 +403,13 @@ static void diag_log_handle(struct msgb *msg)
 
 	printf("LOG(0x%04x, %"PRIu64"u, %u): %s\n", lh->code, lh->ts, lh->len,
 		osmo_hexdump(lh->data, lh->len));
+
+	uint8_t subsys = lh->code >> 12;
+
+	if (subsys == 0x01 &&
+	    ((lh->code & 0xfff) >= LOG_QMI_RESERVED_CODES_BASE_C) &&
+	    ((lh->code & 0xfff) <= LOG_QMI_LAST_C))
+		dump_qmi_msg(lh->data, lh->len);
 }
 
 /*********/
@@ -542,6 +551,18 @@ static void do_configure(int fd)
 	transmit_msgb(fd, msg);
 	do_read(fd);
 
+
+	printf("Core\n");
+	msg = gen_log_config_set_mask(1, 1064);
+	log_config_set_mask_bit(msg, LOG_QMI_CALL_FLOW_C);
+	log_config_set_mask_bit(msg, LOG_QMI_SUPPORTED_INTERFACES_C);
+	for (int i = 0; i < 16*2; i++)
+		log_config_set_mask_bit(msg, LOG_QMI_RESERVED_CODES_BASE_C+i);
+	for (int i = LOG_QMI_RESERVED_CODES_BASE_C; i < LOG_QMI_LAST_C; i++)
+		log_config_set_mask_bit(msg, i);
+
+	transmit_msgb(fd, msg);
+	do_read(fd);
 }
 
 int main(int argc, char **argv)

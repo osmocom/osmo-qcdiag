@@ -13,7 +13,7 @@
 
 #include <osmocom/core/msgb.h>
 
-#include "diagchar_hdlc.h"
+#include "diag_io.h"
 #include "protocol.h"
 #include "config.h"
 #include "diagcmd.h"
@@ -25,58 +25,6 @@
 #include "gprs_rlc.h"
 #include "gprs_mac.h"
 #include "qmi_decode.h"
-
-struct diag_instance {
-	int fd;
-	/* Receiver */
-	struct {
-		struct msgb *msg;
-	} rx;
-	struct {
-	} tx;
-};
-
-/* transmit a msgb containing a DIAG message over the given fd */
-static int diag_transmit_msgb(struct diag_instance *di, struct msgb *msg)
-{
-	int out_len, rc;
-	uint8_t packet[DIAG_MAX_HDLC_BUF_SIZE];
-	struct diag_send_desc_type send;
-	struct diag_hdlc_dest_type enc = { NULL, NULL, 0 };
-
-	send.state = DIAG_STATE_START;
-	send.pkt = msgb_data(msg);
-	send.last = msgb_data(msg) + msgb_length(msg) - 1;
-	send.terminate = 1;
-
-	enc.dest = packet;
-	enc.dest_last = packet + sizeof(packet) - 1;
-
-	diag_hdlc_encode(&send, &enc);
-
-	out_len = (enc.dest - (void *)packet);
-
-	rc = write(di->fd, packet, out_len);
-	if (rc != out_len) {
-		printf("Short write on packet.\n");
-		return -1;
-	}
-
-	msgb_free(msg);
-
-	return 0;
-}
-
-/* transmit a message from a buffer (nto msgb) as DIAG over the given fd */
-static int diag_transmit_buf(struct diag_instance *di, const uint8_t *data, size_t data_len)
-{
-	struct msgb *msg = msgb_alloc(DIAG_MAX_REQ_SIZE, "DIAG Tx");
-
-	memcpy(msg->tail, data, data_len);
-	msgb_put(msg, data_len);
-
-	return diag_transmit_msgb(di, msg);
-}
 
 static int dump_log(const uint8_t *data, const size_t len)
 {
@@ -351,78 +299,23 @@ static void diag_log_handle(struct msgb *msg)
 
 /*********/
 
-static int do_read(struct diag_instance *di)
+static void diag_process_msg(struct diag_instance *di, struct msgb *msg)
 {
-	uint8_t buf[DIAG_MAX_HDLC_BUF_SIZE];
-	struct diag_hdlc_decode_type hdlc_decode;
-	struct msgb *msg;
-	int rc;
-
-	/* read raw data into buffer */
-	rc = read(di->fd, buf, sizeof(buf));
-	if (rc <= 0 ) {
-		fprintf(stderr, "Short read!\n");
-		return -EIO;
+	switch (msg->l2h[0]) {
+	case DIAG_LOG_F:
+		diag_log_handle(msg);
+		break;
+	case DIAG_EXT_MSG_F:
+		dump_log(msgb_data(msg), msgb_length(msg));
+		break;
+	default:
+		printf("Got %d bytes data of unknown payload type 0x%02x\n",
+			msgb_length(msg), msg->l2h[0]);
+		printf("%s\n", osmo_hexdump(msgb_data(msg), msgb_length(msg)));
+		break;
 	}
-
-	if (!di->rx.msg) {
-		di->rx.msg = msgb_alloc(DIAG_MAX_REQ_SIZE, "DIAG Rx");
-		di->rx.msg->l2h = di->rx.msg->tail;
-	}
-	msg = di->rx.msg;
-
-	hdlc_decode.dest_ptr = msg->tail;
-	hdlc_decode.dest_size = msgb_tailroom(msg);
-	hdlc_decode.src_ptr = buf;
-	hdlc_decode.src_size = rc;
-	hdlc_decode.src_idx = 0;
-	hdlc_decode.dest_idx = 0;
-
-	rc = diag_hdlc_decode(&hdlc_decode);
-
-	if (msgb_length(msg) + hdlc_decode.dest_idx > DIAG_MAX_REQ_SIZE) {
-		fprintf(stderr, "Dropping packet. pkt_size: %d, max: %d\n",
-			msgb_length(msg) + hdlc_decode.dest_idx,
-			DIAG_MAX_REQ_SIZE);
-		return -EIO;
-	}
-
-	msgb_put(msg, hdlc_decode.dest_idx);
-
-	if (rc == HDLC_COMPLETE) {
-		di->rx.msg = NULL;
-		rc = crc_check(msgb_data(msg), msgb_length(msg));
-		if (rc) {
-			fprintf(stderr, "Bad CRC, dropping packet\n");
-			msgb_free(msg);
-			return -EINVAL;
-		}
-		msgb_get(msg, HDLC_FOOTER_LEN);
-
-		if (msgb_length(msg) < 1) {
-			fprintf(stderr, "Message too short, len: %u\n", msgb_length(msg));
-			msgb_free(msg);
-			return -EINVAL;
-		}
-
-		switch (msg->l2h[0]) {
-		case DIAG_LOG_F:
-			diag_log_handle(msg);
-			break;
-		case DIAG_EXT_MSG_F:
-			dump_log(msgb_data(msg), msgb_length(msg));
-			break;
-		default:
-			printf("Got %d bytes data of unknown payload type 0x%02x\n",
-				msgb_length(msg), msg->l2h[0]);
-			printf("%s\n", osmo_hexdump(msgb_data(msg), msgb_length(msg)));
-			break;
-		}
-		msgb_free(msg);
-	}
-
-	return 0;
-};
+	msgb_free(msg);
+}
 
 static void do_configure(struct diag_instance *di)
 {
@@ -450,19 +343,19 @@ static void do_configure(struct diag_instance *di)
 
 	/* TODO: introduce a wait for response kind of method */
 	diag_transmit_buf(di, timestamp, sizeof(timestamp));
-	do_read(di);
+	diag_read(di);
 
 	/* enable|disable the event report */
 #if 0
 	diag_transmit_buf(di, enable_evt_report, sizeof(enable_evt_report));
-	do_read(di);
+	diag_read(di);
 #else
 	diag_transmit_buf(di, disable_evt_report, sizeof(disable_evt_report));
-	do_read(di);
+	diag_read(di);
 #endif
 
 	diag_transmit_buf(di, extended_report_cfg, sizeof(extended_report_cfg));
-	do_read(di);
+	diag_read(di);
 
 	printf("GSM\n");
 	struct msgb *msg = gen_log_config_set_mask(5, 1064);
@@ -506,7 +399,7 @@ static void do_configure(struct diag_instance *di)
 	log_config_set_mask_bit(msg, LOG_GPRS_MAC_DL_TBF_RELEASE_C);
 
 	diag_transmit_msgb(di, msg);
-	do_read(di);
+	diag_read(di);
 
 	printf("WCDMA\n");
 	msg = gen_log_config_set_mask(4, 1064);
@@ -522,7 +415,7 @@ static void do_configure(struct diag_instance *di)
 	log_config_set_mask_bit(msg, LOG_WCDMA_SIGNALING_MSG_C);
 
 	diag_transmit_msgb(di, msg);
-	do_read(di);
+	diag_read(di);
 
 
 	printf("Core\n");
@@ -535,7 +428,7 @@ static void do_configure(struct diag_instance *di)
 		log_config_set_mask_bit(msg, i);
 
 	diag_transmit_msgb(di, msg);
-	do_read(di);
+	diag_read(di);
 }
 
 int main(int argc, char **argv)
@@ -551,7 +444,8 @@ int main(int argc, char **argv)
 	}
 
 	memset(&di, 0, sizeof(di));
-	di.fd = osmo_serial_init(argv[1], 115200);
+	di.rx.rcvmsg = &diag_process_msg;
+	di.fd = osmo_serial_init(argv[1], 921600);
 	if (di.fd < 0)
 		return EXIT_FAILURE;
 
@@ -559,7 +453,7 @@ int main(int argc, char **argv)
 
 	while (1) {
 		i++;
-		rc = do_read(&di);
+		rc = diag_read(&di);
 		if (rc == -EIO)
 			break;
 #if 0

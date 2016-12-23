@@ -2,7 +2,7 @@ CPPFLAGS ?= -g -O0 -Wall `pkg-config --cflags qmi-glib`
 LIBS ?= -losmocore `pkg-config --libs qmi-glib`
 all: qxdm-log
 
-qxdm-log: diagchar_hdlc.o qxdm-log.o config.o gprs_rlc.o gprs_mac.o diag_gsm.o protocol.o qmi_decode.o
+qxdm-log: diagchar_hdlc.o diag_io.o qxdm-log.o config.o gprs_rlc.o gprs_mac.o diag_gsm.o protocol.o qmi_decode.o
 	$(CC) $(CPPFLAGS) -o $@ $^ $(LIBS)
 
 clean:

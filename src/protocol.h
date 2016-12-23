@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+struct msgb;
+
 /* From Qualcomm Linux kernel diagchar.h */
 #define DIAG_MAX_REQ_SIZE		(16 * 1024)
 #define DIAG_MAX_HDLC_BUF_SIZE		((DIAG_MAX_REQ_SIZE * 2) + 3)

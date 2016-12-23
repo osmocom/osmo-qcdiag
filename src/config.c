@@ -2,7 +2,7 @@
 #include <osmocom/core/msgb.h>
 
 #include "diagcmd.h"
-#include "framing.h"
+#include "protocol.h"
 
 enum log_config_op {
 	LOG_CONFIG_DISABLE_OP			= 0,
@@ -27,7 +27,7 @@ struct diag_log_config_set_mask {
 
 struct msgb *gen_log_config_set_mask(uint32_t equip_id, uint32_t last_item)
 {
-	struct msgb *msg = msgb_alloc(MAX_PACKET, "Diag Tx");
+	struct msgb *msg = msgb_alloc(DIAG_MAX_REQ_SIZE, "Diag Tx");
 	struct diag_log_config_set_mask *dlcsm;
 	uint8_t *mask;
 

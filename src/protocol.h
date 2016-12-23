@@ -3,6 +3,12 @@
 
 #include <stdint.h>
 
+/* From Qualcomm Linux kernel diagchar.h */
+#define DIAG_MAX_REQ_SIZE		(16 * 1024)
+#define DIAG_MAX_HDLC_BUF_SIZE		((DIAG_MAX_REQ_SIZE * 2) + 3)
+#define HDLC_FOOTER_LEN			3
+
+
 /*
  * 79 00 03 00 06 00 9C 76 B6 07 00 00 D4 00 00 00    y......v¶...Ô...
  * 02 00 00 00 39 00 00 00 63 F9 FF FF 00 00 00 00    ....9...cùÿÿ....

@@ -19,6 +19,10 @@ struct msgb;
  * 25 64 00 6C 31 5F 61 63 71 2E 63 00                %d.l1_acq.c.
  */
 
+/***********************************************************************
+ * Extended Message Service (DIAG_EXT_MSG_F)
+ ***********************************************************************/
+
 struct ext_log_msg {
 	/* msg_hdr_type equivalent */
 	uint8_t		type;
@@ -61,6 +65,10 @@ struct diag_msg_ext {
 } __attribute__((packed));
 
 
+/***********************************************************************
+ * Log Service (IAG_LOG_F)
+ ***********************************************************************/
+
 /* message header for DIAG_LOG_F */
 struct diag_log_hdr {
 	uint8_t		cmd_code;
@@ -76,6 +84,10 @@ struct log_hdr {
 	uint8_t		data[0];
 } __attribute__((packed));
 
+
+/***********************************************************************
+ * Command  Service (DIAG_SUBSYS_CMD_F)
+ ***********************************************************************/
 
 /* extended DIAG packet, */
 struct diagpkt_subsys_hdr {

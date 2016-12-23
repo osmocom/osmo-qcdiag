@@ -3,6 +3,8 @@
 
 #include <libqmi-glib.h>
 
+/* A small wrapper around libqmi-glib to give us a human-readable string
+ * representation of QMI messages that we receive from DIAG */
 int dump_qmi_msg(const uint8_t *data, unsigned int len)
 {
 	GByteArray *buffer;

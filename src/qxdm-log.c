@@ -15,7 +15,6 @@
 
 #include "framing.h"
 #include "protocol.h"
-#include "serial.h"
 #include "config.h"
 #include "diagcmd.h"
 #include "diag_gsm.h"
@@ -498,7 +497,7 @@ static void do_configure(int fd)
 
 int main(int argc, char **argv)
 {
-	int flags, i;
+	int i;
 
 	int fd, rc;
 	if (argc < 2) {
@@ -507,29 +506,8 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	/* Use nonblock as the device might block otherwise */
-	fd = open(argv[1], O_RDWR | O_NOCTTY | O_SYNC | O_NONBLOCK);
-	if (fd < 0) {
-		printf("Opening the serial failed: %d/%s\n",
-			errno, strerror(errno));
-		return EXIT_FAILURE;
-	}
-
-	flags = fcntl(fd, F_GETFL, 0);
-	if (flags < 0) {
-		printf("Failed to get the flags.\n");
-		return EXIT_FAILURE;
-	}
-
-	flags &= ~O_NONBLOCK;
-	rc = fcntl(fd, F_SETFL, flags);
-	if (rc != 0) {
-		printf("Failed to set the flags.\n");
-		return EXIT_FAILURE;
-	}
-
-	rc = serial_configure(fd);
-	if (rc != 0)
+	fd = osmo_serial_init(argv[1], 115200);
+	if (fd < 0)
 		return EXIT_FAILURE;
 
 	do_configure(fd);

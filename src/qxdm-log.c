@@ -12,6 +12,7 @@
 #include <errno.h>
 
 #include <osmocom/core/msgb.h>
+#include <osmocom/core/serial.h>
 
 #include "diag_io.h"
 #include "protocol.h"

@@ -115,4 +115,4 @@ struct diag_gprs_llc_stats {
 	uint32_t llpdu_short_err;
 } __attribute__((packed));
 
-int diag_gsm_make_log_pack_req(uint16_t log_code, uint8_t zero_stats, uint8_t addl_info);
+struct msgb *diag_gsm_make_log_pack_req(uint16_t log_code, uint8_t zero_stats, uint8_t addl_info);

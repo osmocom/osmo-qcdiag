@@ -29,7 +29,6 @@ struct msgb *gen_log_config_set_mask(uint32_t equip_id, uint32_t last_item)
 {
 	struct msgb *msg = msgb_alloc(DIAG_MAX_REQ_SIZE, "Diag Tx");
 	struct diag_log_config_set_mask *dlcsm;
-	uint8_t *mask;
 
 	msg->l2h = msgb_put(msg, sizeof(*dlcsm));
 	dlcsm = (struct diag_log_config_set_mask *) msg->l2h;
@@ -44,7 +43,8 @@ struct msgb *gen_log_config_set_mask(uint32_t equip_id, uint32_t last_item)
 
 int log_config_set_mask_bit(struct msgb *msg, uint32_t bit_in)
 {
-	struct diag_log_config_set_mask *dlcsm = msg->l2h;
+	struct diag_log_config_set_mask *dlcsm;
+	dlcsm = (struct diag_log_config_set_mask *) msg->l2h;
 	uint8_t *mask = msg->l3h;
 	unsigned int byte = bit_in / 8;
 	unsigned int bit = bit_in % 8;

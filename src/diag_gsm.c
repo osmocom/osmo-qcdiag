@@ -3,6 +3,7 @@
 
 #include "diagcmd.h"
 #include "diag_gsm.h"
+#include "protocol.h"
 
 const struct value_string diag_gsm_rr_st_vals[] = {
 	{ DIAG_RR_ST_INACTIVE,		"INACTIVE" },
@@ -60,7 +61,7 @@ struct diag_gsm_log_packet_req {
 	uint8_t addl_info;
 } __attribute__((packed));
 
-int diag_gsm_make_log_pack_req(uint16_t log_code, uint8_t zero_stats, uint8_t addl_info)
+struct msgb *diag_gsm_make_log_pack_req(uint16_t log_code, uint8_t zero_stats, uint8_t addl_info)
 {
 	struct msgb *msg = msgb_alloc_headroom(1024, 128, "GSM Log Packet Req");
 	struct diag_gsm_log_packet_req *glpr;

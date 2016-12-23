@@ -27,56 +27,6 @@
 #include "gprs_mac.h"
 #include "qmi_decode.h"
 
-char *DumpBYTEs(unsigned char *p, long n, int nBytesPerRow /* = 16 */, char *szLineSep /* = "\n" */, int bRaw /* = FALSE */, const char *szIndent /* = "" */)
-{
-  int i;
-  char szBuf[20];
-  static char szRes[4 * 1024];
-
-  szRes[0] = 0;
-
-  if(n == 0)
-    return szRes;
-
-  memset(szBuf, 0, sizeof(szBuf));
-  for(i = 0; i < n; i++)
-  {
-    if(i % nBytesPerRow == 0)
-    {
-        strcat(szRes, szIndent);
-        if(!bRaw)
-            sprintf(szRes + strlen(szRes), "%04d : ", i);
-    }
-
-    sprintf(szRes + strlen(szRes), "%02X ", p[i]);
-    szBuf[i % nBytesPerRow] = (char)((p[i] < 128 && p[i] >= ' ') ?  p[i] : '.'); 
-
-    if((i + 1) % nBytesPerRow == 0)
-    {
-      if(bRaw)
-        sprintf(szRes + strlen(szRes), "%s", szLineSep);
-      else
-        sprintf(szRes + strlen(szRes), "  %s%s", szBuf, szLineSep);
-      memset(szBuf, 0, sizeof(szBuf));
-    } 
-  }
-
-  if(i % nBytesPerRow != 0)
-  {
-    if(bRaw)
-      sprintf(szRes + strlen(szRes), "%s", szLineSep);
-    else
-    {
-      n = nBytesPerRow - i % nBytesPerRow;
-      for(i = 0; i < n ; i++) 
-        sprintf(szRes + strlen(szRes), "   ");
-      sprintf(szRes + strlen(szRes), "  %s%s", szBuf, szLineSep);
-    }
-  }
-
-  return szRes;
-}
-
 static int transmit_msgb(int fd, struct msgb *msg)
 {
 	int out_len, rc;
@@ -421,7 +371,7 @@ static int do_read(int fd)
 		break;
 	default:
 		printf("Got %d data of payload\n", rc); 
-		printf("%s\n", DumpBYTEs(msgb_data(msg), msgb_length(msg), 16, "\n", 0, ""));
+		printf("%s\n", osmo_hexdump(msgb_data(msg), msgb_length(msg)));
 		break;
 	};
 

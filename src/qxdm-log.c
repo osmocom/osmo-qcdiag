@@ -27,7 +27,8 @@
 #include "gprs_mac.h"
 #include "qmi_decode.h"
 
-static int transmit_msgb(int fd, struct msgb *msg)
+/* transmit a msgb containing a DIAG message over the given fd */
+static int diag_transmit_msgb(int fd, struct msgb *msg)
 {
 	int out_len, rc;
 	uint8_t packet[MAX_PACKET * 2];
@@ -50,7 +51,8 @@ static int transmit_msgb(int fd, struct msgb *msg)
 	return 0;
 }
 
-static int transmit_packet(int fd, const uint8_t *data, size_t data_len)
+/* transmit a message from a buffer (nto msgb) as DIAG over the given fd */
+static int diag_transmit_buf(int fd, const uint8_t *data, size_t data_len)
 {
 	int out_len, rc;
 	uint8_t packet[MAX_PACKET * 2];	
@@ -405,19 +407,19 @@ static void do_configure(int fd)
 	};
 
 	/* TODO: introduce a wait for response kind of method */
-	transmit_packet(fd, timestamp, sizeof(timestamp));
+	diag_transmit_buf(fd, timestamp, sizeof(timestamp));
 	do_read(fd);
 
 	/* enable|disable the event report */
 #if 0
-	transmit_packet(fd, enable_evt_report, sizeof(enable_evt_report));
+	diag_transmit_buf(fd, enable_evt_report, sizeof(enable_evt_report));
 	do_read(fd);
 #else
-	transmit_packet(fd, disable_evt_report, sizeof(disable_evt_report));
+	diag_transmit_buf(fd, disable_evt_report, sizeof(disable_evt_report));
 	do_read(fd);
 #endif
 
-	transmit_packet(fd, extended_report_cfg, sizeof(extended_report_cfg));
+	diag_transmit_buf(fd, extended_report_cfg, sizeof(extended_report_cfg));
 	do_read(fd);
 
 	printf("GSM\n");
@@ -461,7 +463,7 @@ static void do_configure(int fd)
 	log_config_set_mask_bit(msg, LOG_GPRS_MAC_UL_TBF_RELEASE_C);
 	log_config_set_mask_bit(msg, LOG_GPRS_MAC_DL_TBF_RELEASE_C);
 
-	transmit_msgb(fd, msg);
+	diag_transmit_msgb(fd, msg);
 	do_read(fd);
 
 	printf("WCDMA\n");
@@ -477,7 +479,7 @@ static void do_configure(int fd)
 	log_config_set_mask_bit(msg, 0x129);
 	log_config_set_mask_bit(msg, LOG_WCDMA_SIGNALING_MSG_C);
 
-	transmit_msgb(fd, msg);
+	diag_transmit_msgb(fd, msg);
 	do_read(fd);
 
 
@@ -490,7 +492,7 @@ static void do_configure(int fd)
 	for (int i = LOG_QMI_RESERVED_CODES_BASE_C; i < LOG_QMI_LAST_C; i++)
 		log_config_set_mask_bit(msg, i);
 
-	transmit_msgb(fd, msg);
+	diag_transmit_msgb(fd, msg);
 	do_read(fd);
 }
 
@@ -541,7 +543,7 @@ int main(int argc, char **argv)
 		if (i % 10 == 0) {
 			struct msgb *msg = diag_gsm_make_log_pack_req(LOG_GPRS_LLC_PDU_STATS_C , 0, 0);
 			printf("Requesting LLC stats...(%s)\n", osmo_hexdump(msgb_data(msg), msgb_length(msg)));
-			transmit_msgb(fd, msg);
+			diag_transmit_msgb(fd, msg);
 		}
 #endif
 

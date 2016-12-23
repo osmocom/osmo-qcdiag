@@ -67,11 +67,11 @@ static uint16_t crc16(const uint8_t *data, size_t len)
 {
 	uint16_t crc = CRC_SEED;
 
-	for(; len != 0; len--, data++) 
+	for(; len != 0; len--, data++)
 		crc = crc_ccit16[(crc ^ *data) & 0x00ff] ^ (crc >> 8);
 
-    	/* return the 1's complement */
-    	return ~crc; 
+	/* return the 1's complement */
+	return ~crc;
 }
 
 #define DO_ESCAPE(x, idx, out, out_len) \
@@ -105,15 +105,15 @@ int frame_pack(const uint8_t *in, const size_t in_len, uint8_t *out, const size_
 		c = in[i];
 		DO_ESCAPE(c, idx, out, out_len);
 	}
-    
-    	/* two bytes CRC */
+
+	/* two bytes CRC */
 	uint16_t crc = crc16(in, in_len);
 
 	c = (uint8_t) (crc & 0xFF);
 	DO_ESCAPE(c, idx, out, out_len);
-    
+
 	c = (uint8_t) (crc >> 8);
-    	DO_ESCAPE(c, idx, out, out_len);
+	DO_ESCAPE(c, idx, out, out_len);
 
 	/* end of packet */
 	out[idx++] = PACKET_START_STOP;
@@ -129,14 +129,13 @@ int frame_unpack(uint8_t *pDataIn, int nDataIn, uint8_t *pPacket)
 	static int nDataBuf = 0;
 	int i;
 
-	if(nDataIn > sizeof(ubBuf)) {
+	if (nDataIn > sizeof(ubBuf)) {
 		printf("Too many data\n");
 		return -1;
 	}
 
 	/* is there enough free space in the buffer ? */
-
-	if(nDataIn + nDataBuf >= sizeof(ubBuf)) {
+	if (nDataIn + nDataBuf >= sizeof(ubBuf)) {
 		/* no, empty buffer */
 		nDataBuf = 0;
 	}
@@ -161,8 +160,7 @@ int frame_unpack(uint8_t *pDataIn, int nDataIn, uint8_t *pPacket)
 
 	int nDataPacket = 0;
 	int bEscape = 0;
-	for (i = 0; i < idxStop; i++)
-	{
+	for (i = 0; i < idxStop; i++) {
 		if (ubBuf[i] == PACKET_ESCAPE) {
 			bEscape = 1;
 		} else {
@@ -190,8 +188,8 @@ int frame_unpack(uint8_t *pDataIn, int nDataIn, uint8_t *pPacket)
 	}
 
 	uint16_t crc = crc16(pPacket, nDataPacket - 2);
-	if((crc & 0xFF) != pPacket[nDataPacket - 2] || 
-			(crc >> 8) != pPacket[nDataPacket - 1]) {
+	if ((crc & 0xFF) != pPacket[nDataPacket - 2] ||
+	    (crc >> 8) != pPacket[nDataPacket - 1]) {
 		printf("Invalid CRC (0x%04X != 0x%02X%02X)\n",
 			crc, pPacket[nDataPacket - 1], pPacket[nDataPacket - 2]);
 		return -1;

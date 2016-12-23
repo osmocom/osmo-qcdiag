@@ -12,24 +12,22 @@
  *
  */
 
-#include <linux/init.h>
-#include <linux/module.h>
-#include <linux/cdev.h>
-#include <linux/fs.h>
-#include <linux/device.h>
-#include <linux/uaccess.h>
-#include <linux/ratelimit.h>
-#include <linux/crc-ccitt.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/types.h>
+
+#include <osmocom/core/crc16.h>
 #include "diagchar_hdlc.h"
-#include "diagchar.h"
 
-
-MODULE_LICENSE("GPL v2");
+#define CONTROL_CHAR		0x7E
 
 #define CRC_16_L_SEED           0xFFFF
 
 #define CRC_16_L_STEP(xx_crc, xx_c) \
-	crc_ccitt_byte(xx_crc, xx_c)
+	osmo_crc16_ccitt_byte(xx_crc, xx_c)
 
 void diag_hdlc_encode(struct diag_send_desc_type *src_desc,
 		      struct diag_hdlc_dest_type *enc)
@@ -242,7 +240,7 @@ int crc_check(uint8_t *buf, uint16_t len)
 	 * of data and 3 bytes for CRC
 	 */
 	if (!buf || len < 4) {
-		pr_err_ratelimited("diag: In %s, invalid packet or length, buf: 0x%p, len: %d",
+		fprintf(stderr, "diag: In %s, invalid packet or length, buf: 0x%p, len: %d",
 				   __func__, buf, len);
 		return -EIO;
 	}
@@ -251,14 +249,14 @@ int crc_check(uint8_t *buf, uint16_t len)
 	 * Run CRC check for the original input. Skip the last 3 CRC
 	 * bytes
 	 */
-	crc = crc_ccitt(crc, buf, len-3);
+	crc = osmo_crc16_ccitt(crc, buf, len-3);
 	crc ^= CRC_16_L_SEED;
 
 	/* Check the computed CRC against the original CRC bytes. */
 	sent_crc[0] = buf[len-3];
 	sent_crc[1] = buf[len-2];
 	if (crc != *((uint16_t *)sent_crc)) {
-		pr_debug("diag: In %s, crc mismatch. expected: %x, sent %x.\n",
+		fprintf(stderr, "diag: In %s, crc mismatch. expected: %x, sent %x.\n",
 				__func__, crc, *((uint16_t *)sent_crc));
 		return -EIO;
 	}

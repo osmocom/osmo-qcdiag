@@ -27,14 +27,15 @@
 #include "gprs_mac.h"
 #include "qmi_decode.h"
 
-static int dump_log(const uint8_t *data, const size_t len)
+/* handler for EXT MSG */
+static int diag_rx_ext_msg_f(const uint8_t *data, const size_t len)
 {
 	const struct ext_log_msg *msg;
 	const char *file = NULL, *fmt;
 	unsigned int num_args;
 
 	if (len < sizeof(struct ext_log_msg)) {
-		printf("too short log message.\n");
+		printf("too short ext_log_msg.\n");
 		return -1;
 	}
 
@@ -307,7 +308,7 @@ static void diag_process_msg(struct diag_instance *di, struct msgb *msg)
 		diag_log_handle(msg);
 		break;
 	case DIAG_EXT_MSG_F:
-		dump_log(msgb_data(msg), msgb_length(msg));
+		diag_rx_ext_msg_f(msgb_data(msg), msgb_length(msg));
 		break;
 	default:
 		printf("Got %d bytes data of unknown payload type 0x%02x\n",

@@ -122,16 +122,9 @@ static int transmit_packet(int fd, const uint8_t *data, size_t data_len)
 
 static int dump_log(const uint8_t *data, const size_t len)
 {
-	size_t i, file_len;
-	size_t params = 0;
 	const struct ext_log_msg *msg;
-	const char *file = NULL, *log;
-	struct tm *tm;
-	time_t now;
-	const size_t str_len = len - offsetof(struct ext_log_msg, data);
-
-	time(&now);
-	tm = localtime(&now);
+	const char *file = NULL, *fmt;
+	unsigned int num_args;
 
 	if (len < sizeof(struct ext_log_msg)) {
 		printf("too short log message.\n");
@@ -139,43 +132,29 @@ static int dump_log(const uint8_t *data, const size_t len)
 	}
 
 	msg = (struct ext_log_msg *) data;
-	log = (const char *) msg->data;
+	num_args = msg->num_args;
+	fmt = (const char *) msg->params + num_args*sizeof(msg->params[0]);
+	file = fmt + strlen(fmt) + 1;
 
-	/*
-	 * Check if it is null terminated and how many parameters it
-	 * might have. This counts all '%' but doesn't take '%%' into
-	 * account.
-	 */
-	for (i = 0; i < str_len; ++i) {
-		if (log[i] == '%')
-			params += 1;
-		else if (log[i] == '\0' && i + 1 < str_len) {
-			file = &log[i + 1];
-			file_len = str_len - i - 1;
-			break;
-		}
+	printf("%"PRIu64" %-20s(%u): ", msg->timestamp, file, msg->line_nr);
+	switch (num_args) {
+	case 0:
+		fputs(fmt, stdout);
+		break;
+	case 1:
+		printf(fmt, msg->params[0]);
+		break;
+	case 2:
+		printf(fmt, msg->params[0], msg->params[1]);
+		break;
+	case 3:
+		printf(fmt, msg->params[0], msg->params[1], msg->params[2]);
+		break;
+	case 4:
+		printf(fmt, msg->params[0], msg->params[1], msg->params[2], msg->params[3]);
+		break;
 	}
-
-	if (file_len == 0 || file[file_len - 1] != '\0') {
-		printf("File too short or not null terminated\n");
-		return -2;
-	}
-
-	if (params > 3) {
-		printf("Too many parameters in the log message.\n");
-		return -1;
-	}
-
-	if (!file) {
-		printf("The file is not present..\n");
-		return -2;
-	}
-
-	printf("%.2d:%.2d:%.2d %-20s: ",
-		tm->tm_hour, tm->tm_min, tm->tm_sec,
-		file);
-	printf(log, msg->params[0], msg->params[1], msg->params[2]);
-	printf("\n");
+	fputc('\n', stdout);
 	return 0;
 }
 

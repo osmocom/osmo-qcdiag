@@ -12,14 +12,19 @@
  */
 
 struct ext_log_msg {
+	/* msg_hdr_type equivalent */
 	uint8_t		type;
-	uint16_t	unknown1;	/* 0x00 0x03 type??? */
-	uint16_t	unknown2;	/* 0x00 0x06 type??? */
+	uint8_t		ts_type;	/* timestamp tyoe */
+	uint8_t		num_args;	/* number of arguments */
+	uint8_t		drop_cnt;	/* dropped messages */
 	uint64_t	timestamp;	/* More 32 bit but dm-commands.h */
-	uint8_t		unknown3[3];	/* 0x00 0x00 0x00 */
-	uint32_t	unknown4;	/* 0x02 0x00 0x00 0x00 */
-	int32_t		params[3];	/* three params */
-	uint8_t		data[0];	/* two NULL terminated strings from here */
+
+	/* msg_desc_type */
+	uint16_t	line_nr;
+	uint16_t	subsys_id;
+	uint32_t	subsys_mask;
+
+	int32_t		params[0];	/* three params */
 } __attribute__((packed));
 
 

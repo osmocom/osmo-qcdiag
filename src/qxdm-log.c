@@ -44,7 +44,7 @@ static int diag_rx_ext_msg_f(const uint8_t *data, const size_t len)
 	fmt = (const char *) msg->params + num_args*sizeof(msg->params[0]);
 	file = fmt + strlen(fmt) + 1;
 
-	printf("%"PRIu64" %-20s(%u): ", msg->timestamp, file, msg->line_nr);
+	printf("MSG(%u|%s:%u): ", diag_ts_to_epoch(msg->timestamp), file, msg->line_nr);
 	switch (num_args) {
 	case 0:
 		fputs(fmt, stdout);
@@ -281,6 +281,9 @@ static void diag_log_handle(struct msgb *msg)
 	/* FIXME: verify length */
 	msgb_pull(msg, sizeof(*lh));
 
+	printf("LOG(0x%04x|%u|%u): ", lh->code,
+		diag_ts_to_epoch(lh->ts), diag_ts_to_fn(lh->ts));
+
 	for (i = 0; i < ARRAY_SIZE(log_tbl); i++) {
 		if (log_tbl[i].code == lh->code) {
 			log_tbl[i].handler(lh, msg);
@@ -288,8 +291,7 @@ static void diag_log_handle(struct msgb *msg)
 		}
 	}
 
-	printf("LOG(0x%04x, %"PRIu64"u, %u): %s\n", lh->code, lh->ts, lh->len,
-		osmo_hexdump(lh->data, lh->len));
+	printf("%s\n", osmo_hexdump(lh->data, lh->len));
 
 	uint8_t subsys = lh->code >> 12;
 
@@ -311,9 +313,9 @@ static void diag_process_msg(struct diag_instance *di, struct msgb *msg)
 		diag_rx_ext_msg_f(msgb_data(msg), msgb_length(msg));
 		break;
 	default:
-		printf("Got %d bytes data of unknown payload type 0x%02x\n",
-			msgb_length(msg), msg->l2h[0]);
-		printf("%s\n", osmo_hexdump(msgb_data(msg), msgb_length(msg)));
+		printf("Got %d bytes data of unknown payload type 0x%02x: %s\n",
+			msgb_length(msg), msg->l2h[0],
+			osmo_hexdump(msgb_data(msg), msgb_length(msg)));
 		break;
 	}
 	msgb_free(msg);

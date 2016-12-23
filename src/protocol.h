@@ -97,5 +97,7 @@ struct diagpkt_subsys_hdr {
 } __attribute__((packed));
 
 int diag_push_subsys_hdr(struct msgb *msg, uint8_t subsys, uint8_t code);
+uint32_t diag_ts_to_fn(uint64_t ts);
+uint32_t diag_ts_to_epoch(uint64_t qd_time);
 
 #endif

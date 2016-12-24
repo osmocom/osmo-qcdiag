@@ -1,6 +1,6 @@
 #include <osmocom/core/msgb.h>
-#include "protocol.h"
-#include "diagcmd.h"
+#include "protocol/protocol.h"
+#include "protocol/diagcmd.h"
 
 int diag_push_subsys_hdr(struct msgb *msg, uint8_t subsys, uint8_t code)
 {

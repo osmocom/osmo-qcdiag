@@ -4,8 +4,8 @@
 #include <osmocom/core/msgb.h>
 
 #include "diag_log.h"
-#include "protocol.h"
-#include "diagcmd.h"
+#include "protocol/protocol.h"
+#include "protocol/diagcmd.h"
 
 /***********************************************************************
  * LOG Configuration / Protocol

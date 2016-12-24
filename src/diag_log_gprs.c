@@ -1,10 +1,9 @@
 #include <stdio.h>
 
 #include "diag_log.h"
-#include "diag_gsm.h"
-#include "gprs_rlc.h"
-#include "gprs_mac.h"
-#include "log_codes_gsm.h"
+#include "protocol/diag_log_gsm.h"
+#include "protocol/diag_log_gprs_rlc.h"
+#include "protocol/diag_log_gprs_mac.h"
 
 
 static void handle_grr_state_msg(struct log_hdr *lh, struct msgb *msg)

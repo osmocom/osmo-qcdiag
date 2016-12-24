@@ -1,9 +1,9 @@
 #include <osmocom/core/utils.h>
 #include <osmocom/core/msgb.h>
 
-#include "diagcmd.h"
-#include "diag_gsm.h"
-#include "protocol.h"
+#include "protocol/diagcmd.h"
+#include "protocol/diag_log_gsm.h"
+#include "protocol/protocol.h"
 
 const struct value_string diag_gsm_rr_st_vals[] = {
 	{ DIAG_RR_ST_INACTIVE,		"INACTIVE" },

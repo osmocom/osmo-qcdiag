@@ -2,6 +2,15 @@
 
 #include <stdint.h>
 
+#define UMTS(x)	(0x4000 + x)
+
+enum diag_log_code_umts {
+	LOG_WCDMA_RRC_STATES_C				= 0x125,
+	LOG_WCDMA_RRC_PROTOCOL_ERRORS_C			= 0x126,
+	LOG_WCDMA_CELL_ID_C				= 0x127,
+	LOG_WCDMA_SIGNALING_MSG_C			= 0x12f,
+};
+
 enum diag_umts_rrc_chtype {
 	DIAG_UMTS_RRC_CHT_UL_CCCH	= 0,
 	DIAG_UMTS_RRC_CHT_DL_DCCH	= 1,
@@ -19,4 +28,3 @@ struct diag_umts_rrc_msg {
 	uint16_t	length;
 	uint8_t		msg[0];
 } __attribute__((packed));
-

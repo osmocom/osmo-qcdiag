@@ -7,9 +7,9 @@
 #include <osmocom/core/bit16gen.h>
 #include <osmocom/core/bit32gen.h>
 
-#include "protocol.h"
+#include "protocol/protocol.h"
 #include "diag_msg.h"
-#include "diagcmd.h"
+#include "protocol/diagcmd.h"
 
 struct diag_set_rt_mask_req {
 	uint8_t cmd_code;

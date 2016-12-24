@@ -1,6 +1,6 @@
 #include <osmocom/core/utils.h>
 
-#include "gprs_mac.h"
+#include "protocol/diag_log_gprs_mac.h"
 
 struct value_string gprs_mac_mode_vals[] = {
 	{ NULL_MODE,	"NULL" },

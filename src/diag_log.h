@@ -1,7 +1,7 @@
 #pragma once
 
 #include "diag_io.h"
-#include "protocol.h"
+#include "protocol/protocol.h"
 
 typedef void diag_log_handler(struct log_hdr *lh, struct msgb *msg);
 

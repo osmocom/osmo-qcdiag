@@ -1,8 +1,7 @@
 #include <stdio.h>
 
 #include "diag_log.h"
-#include "diag_gsm.h"
-#include "log_codes_gsm.h"
+#include "protocol/diag_log_gsm.h"
 
 
 static void handle_rr_sig_msg(struct log_hdr *lh, struct msgb *msg)

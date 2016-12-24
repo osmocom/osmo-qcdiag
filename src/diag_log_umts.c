@@ -1,8 +1,7 @@
 #include <stdio.h>
 
 #include "diag_log.h"
-#include "diag_wcdma.h"
-#include "log_codes_wcdma.h"
+#include "protocol/diag_log_wcdma.h"
 
 static void handle_rrc_sig_msg(struct log_hdr *lh, struct msgb *msg)
 {
@@ -11,9 +10,6 @@ static void handle_rrc_sig_msg(struct log_hdr *lh, struct msgb *msg)
 	printf("RRC: %u %u %u: %s\n", rrm->chan_type, rrm->rb_id, rrm->length,
 		osmo_hexdump(msgb_data(msg), rrm->length));
 }
-
-#define UMTS(x)	(0x4000 + x)
-
 
 static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ UMTS(LOG_WCDMA_SIGNALING_MSG_C), handle_rrc_sig_msg },

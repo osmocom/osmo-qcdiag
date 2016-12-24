@@ -1,6 +1,6 @@
 #include <osmocom/core/utils.h>
 
-#include "gprs_rlc.h"
+#include "protocol/diag_log_gprs_rlc.h"
 
 struct value_string gprs_rlc_ul_state_vals[8] = {
 	{ US_NULL,		"US_NULL" },

@@ -15,10 +15,10 @@
 #include <osmocom/core/serial.h>
 
 #include "diag_io.h"
-#include "protocol.h"
 #include "diag_log.h"
 #include "diag_msg.h"
-#include "diagcmd.h"
+#include "protocol/protocol.h"
+#include "protocol/diagcmd.h"
 
 /*********/
 

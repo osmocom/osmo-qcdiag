@@ -4,7 +4,7 @@
 #include <libqmi-glib.h>
 
 #include "diag_log.h"
-#include "log_codes_qmi.h"
+#include "protocol/diag_log_qmi.h"
 
 /* A small wrapper around libqmi-glib to give us a human-readable string
  * representation of QMI messages that we receive from DIAG */

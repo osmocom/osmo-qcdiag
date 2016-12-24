@@ -5,7 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "protocol.h"
+#include "protocol/protocol.h"
 #include "diag_io.h"
 #include "diagchar_hdlc.h"
 

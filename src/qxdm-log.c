@@ -49,20 +49,6 @@ static void do_configure(struct diag_instance *di)
 	static const uint8_t disable_evt_report[] = {
 		DIAG_EVENT_REPORT_F, 0x00
 	};
-	static const uint8_t extended_report_cfg[] = {
-		/* command code */
-		DIAG_EXT_MSG_CONFIG_F,
-		/* sub command */
-		0x04,
-		/* subsystem ID range start */
-		0x00, 0x00,
-		/* subsystem ID range end */
-		0x00, 0x00,
-		/* pad */
-		0x00, 0x00,
-		/* array of runtime masks */
-		0x02, 0x00, 0x00, 0x00,
-	};
 
 	/* TODO: introduce a wait for response kind of method */
 	diag_transmit_buf(di, timestamp, sizeof(timestamp));
@@ -76,9 +62,7 @@ static void do_configure(struct diag_instance *di)
 	diag_transmit_buf(di, disable_evt_report, sizeof(disable_evt_report));
 	diag_read(di);
 #endif
-
-	diag_transmit_buf(di, extended_report_cfg, sizeof(extended_report_cfg));
-	diag_read(di);
+	diag_msg_config_set_rt_mask(di, MSG_SSID_LINUX_DATA, 0xffffffff);
 
 #if 0
 	printf("GSM\n");

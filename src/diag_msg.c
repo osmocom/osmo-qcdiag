@@ -4,11 +4,48 @@
 #include <string.h>
 
 #include <osmocom/core/msgb.h>
+#include <osmocom/core/bit16gen.h>
+#include <osmocom/core/bit32gen.h>
 
 #include "protocol.h"
 #include "diag_msg.h"
 #include "diagcmd.h"
 
+struct diag_set_rt_mask_req {
+	uint8_t cmd_code;
+	uint8_t sub_cmd;
+	uint16_t ssid_start;
+	uint16_t ssid_end;
+	uint16_t _pad;
+	uint32_t runtime_mask[1];
+};
+
+#define MSG_EXT_SUBCMD_SET_RT_MASK	4
+
+struct msgb *gen_msg_config_set_rt_mask(uint16_t ssid, uint32_t runtime_mask)
+{
+	struct msgb *msg = msgb_alloc(DIAG_MAX_REQ_SIZE, "Diag Msg Config");
+	struct diag_set_rt_mask_req *dsrmr;
+
+	msg->l2h = msgb_put(msg, sizeof(*dsrmr));
+	dsrmr = (struct diag_set_rt_mask_req *) msg->l2h;
+	dsrmr->cmd_code = DIAG_EXT_MSG_CONFIG_F;
+	dsrmr->sub_cmd = MSG_EXT_SUBCMD_SET_RT_MASK;
+	osmo_store16le(ssid, &dsrmr->ssid_start);
+	osmo_store16le(ssid, &dsrmr->ssid_end);
+	osmo_store32le(runtime_mask, &dsrmr->runtime_mask[0]);
+
+	return msg;
+}
+
+int diag_msg_config_set_rt_mask(struct diag_instance *di, uint16_t ssid, uint32_t runtime_mask)
+{
+	struct msgb *msg = gen_msg_config_set_rt_mask(ssid, runtime_mask);
+	diag_transmit_msgb(di, msg);
+	diag_read(di);
+
+	return 0;
+}
 
 /* handler for EXT MSG */
 int diag_rx_ext_msg_f(struct diag_instance *di, struct msgb *msgb)

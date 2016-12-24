@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 
 /* LOG_GPRS_RLC_UL_ABNRML_RLS_COUNTS_C */

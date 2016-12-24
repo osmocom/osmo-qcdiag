@@ -1,5 +1,7 @@
 #pragma once
 
+#define GSM(x)	(0x5000 + x)
+
 enum diag_log_code_gsm {
 	LOG_GSM_POWER_SCAN_C				= 0x64,
 	LOG_GSM_FCCH_DECODE_C				= 0x65,

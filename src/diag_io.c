@@ -31,7 +31,7 @@ int diag_transmit_msgb(struct diag_instance *di, struct msgb *msg)
 
 	rc = write(di->fd, packet, out_len);
 	if (rc != out_len) {
-		printf("Short write on packet.\n");
+		fprintf(stderr, "Short write on packet.\n");
 		return -1;
 	}
 

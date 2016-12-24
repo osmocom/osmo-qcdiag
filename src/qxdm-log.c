@@ -17,46 +17,8 @@
 #include "diag_io.h"
 #include "protocol.h"
 #include "diag_log.h"
+#include "diag_msg.h"
 #include "diagcmd.h"
-
-/* handler for EXT MSG */
-static int diag_rx_ext_msg_f(const uint8_t *data, const size_t len)
-{
-	const struct ext_log_msg *msg;
-	const char *file = NULL, *fmt;
-	unsigned int num_args;
-
-	if (len < sizeof(struct ext_log_msg)) {
-		printf("too short ext_log_msg.\n");
-		return -1;
-	}
-
-	msg = (struct ext_log_msg *) data;
-	num_args = msg->num_args;
-	fmt = (const char *) msg->params + num_args*sizeof(msg->params[0]);
-	file = fmt + strlen(fmt) + 1;
-
-	printf("MSG(%u|%s:%u): ", diag_ts_to_epoch(msg->timestamp), file, msg->line_nr);
-	switch (num_args) {
-	case 0:
-		fputs(fmt, stdout);
-		break;
-	case 1:
-		printf(fmt, msg->params[0]);
-		break;
-	case 2:
-		printf(fmt, msg->params[0], msg->params[1]);
-		break;
-	case 3:
-		printf(fmt, msg->params[0], msg->params[1], msg->params[2]);
-		break;
-	case 4:
-		printf(fmt, msg->params[0], msg->params[1], msg->params[2], msg->params[3]);
-		break;
-	}
-	fputc('\n', stdout);
-	return 0;
-}
 
 /*********/
 
@@ -67,7 +29,7 @@ static void diag_process_msg(struct diag_instance *di, struct msgb *msg)
 		diag_log_handle(di, msg);
 		break;
 	case DIAG_EXT_MSG_F:
-		diag_rx_ext_msg_f(msgb_data(msg), msgb_length(msg));
+		diag_rx_ext_msg_f(di, msg);
 		break;
 	default:
 		printf("Got %d bytes data of unknown payload type 0x%02x: %s\n",

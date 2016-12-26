@@ -1,0 +1,10 @@
+The initial version of this utility was created by Dieter Spaar
+and ran on Windows. It used the DIAG protocol to read and write
+memory.
+
+It was ported to Linux by Holger Freyther and extended to enable
+and parse GSM RF measurement results. The measurement results
+were used during EMC tests of GSM equipment.
+
+Harald Welte greatly extended and re-wrote the utility to decode
+more fields, e.g. the GPRS messages.

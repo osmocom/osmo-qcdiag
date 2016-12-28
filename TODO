@@ -2,10 +2,10 @@
   code or know-how from https://github.com/moiji-mobile/diag-parser
 * forward the printed text log messages via GSMTAP-LOG so they can be
   seen in-line with protocol decode in (recent) wireshark
-* have a proper send-and-wait-for-reply mecahnsim when sending config
+* have a proper send-and-wait-for-reply mechanism when sending config
   requests
 * use the proper config requests to determine the available SSIDs and
-  massk, as well as log-masks.
+  mask, as well as log-masks.
 * add decoders for missing 2G/3G/4G state change related events
 * investigate more MSG sub-systems
 * add a VTY interface for configuration of sub-systems/log-flags

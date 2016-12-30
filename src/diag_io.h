@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <osmocom/core/msgb.h>
+#include <osmocom/core/gsmtap_util.h>
 
 struct diag_instance {
 	int fd;
@@ -11,6 +12,7 @@ struct diag_instance {
 	} rx;
 	struct {
 	} tx;
+	struct gsmtap_inst *gsmtap;
 };
 
 int diag_transmit_msgb(struct diag_instance *di, struct msgb *msg);

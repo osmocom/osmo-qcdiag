@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "diag_log.h"
+#include "protocol/diag_log_gsm.h"
 #include "protocol/diag_log_wcdma.h"
 
 static void handle_rrc_sig_msg(struct log_hdr *lh, struct msgb *msg)
@@ -11,8 +12,14 @@ static void handle_rrc_sig_msg(struct log_hdr *lh, struct msgb *msg)
 		osmo_hexdump(msgb_data(msg), rrm->length));
 }
 
+static void handle_gmm_ota_msg(struct log_hdr *lh, struct msgb *msg)
+{
+	/* FIXME */
+}
+
 static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ UMTS(LOG_WCDMA_SIGNALING_MSG_C), handle_rrc_sig_msg },
+	{ UMTS(LOG_GPRS_SM_GMM_OTA_MESSAGE_C), handle_gmm_ota_msg },
 };
 
 static __attribute__((constructor)) void on_dso_load_umts(void)

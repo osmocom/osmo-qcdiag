@@ -34,6 +34,8 @@
 
 #include <osmocom/core/msgb.h>
 #include <osmocom/core/serial.h>
+#include <osmocom/core/gsmtap_util.h>
+#include <osmocom/core/gsmtap.h>
 
 #include "diag_io.h"
 #include "diag_log.h"
@@ -84,6 +86,10 @@ static void do_configure(struct diag_instance *di)
 	diag_read(di);
 #endif
 	diag_msg_config_set_rt_mask(di, MSG_SSID_LINUX_DATA, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, 5012, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, 5000, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, 5030, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, 5009, 0xffffffff);
 
 #if 0
 	printf("GSM\n");
@@ -150,6 +156,9 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 
 	do_configure(&di);
+
+	di.gsmtap = gsmtap_source_init("localhost", GSMTAP_UDP_PORT, 0);
+	gsmtap_source_add_sink(di.gsmtap);
 
 	while (1) {
 		i++;

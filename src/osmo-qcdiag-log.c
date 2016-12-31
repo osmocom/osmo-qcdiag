@@ -1,7 +1,7 @@
 /*
  * (C) 2013-2016 by Harald Welte <laforge@gnumonks.org>
  *
- * oriiginally based on ealier code from Dieter Spaar and Holger
+ * originally based on earlier code from Dieter Spaar and Holger
  * Freyther, though by now almost entirely rewritten.  Nevertheless,
  * thanks to Dieter and Holger!
  *

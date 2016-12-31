@@ -20,6 +20,7 @@
 #include <osmocom/core/utils.h>
 #include <osmocom/core/msgb.h>
 
+#include "diag_log.h"
 #include "protocol/diagcmd.h"
 #include "protocol/diag_log_1x.h"
 #include "protocol/dpl.h"
@@ -42,7 +43,7 @@ int diag_dpl_reset_logging(struct diag_instance *di)
 
 int diag_dpl_get_sup_if(struct diag_instance *di)
 {
-	struct msgb *mgs = msgb_alloc_diag();
+	struct msgb *msg = msgb_alloc_diag();
 	diag_push_subsys_hdr(msg, DIAG_SUBSYS_PS_DATA_LOGGING,
 			     DIAG_DPL_GET_SUPPORTED_IFACES);
 	diag_transmit_msgb(di, msg);
@@ -52,10 +53,10 @@ int diag_dpl_get_sup_if(struct diag_instance *di)
 
 int diag_dpl_get_if_desc(struct diag_instance *di, uint8_t iface_id)
 {
-	struct msgb *mgs = msgb_alloc_diag();
+	struct msgb *msg = msgb_alloc_diag();
 	struct dpl_get_if_desc_req *gidr;
 
-	gidr = (struct dpl_get_if_desc_req *) mgsb_put(msg, sizeof(*gidr));
+	gidr = (struct dpl_get_if_desc_req *) msgb_put(msg, sizeof(*gidr));
 	gidr->iface_id = iface_id;
 	diag_push_subsys_hdr(msg, DIAG_SUBSYS_PS_DATA_LOGGING,
 			     DIAG_DPL_GET_SUPPORTED_IFACES);
@@ -66,7 +67,7 @@ int diag_dpl_get_if_desc(struct diag_instance *di, uint8_t iface_id)
 
 int diag_dpl_set_if_log(struct diag_instance *di, uint8_t iface_id)
 {
-	struct msgb *mgs = msgb_alloc_diag();
+	struct msgb *msg = msgb_alloc_diag();
 	struct dpl_set_if_log_req *silr;
 
 	silr = (struct dpl_get_if_desc_req *) msgb_put(msg, sizeof(*silr));

@@ -39,12 +39,16 @@ uint32_t diag_ts_to_fn(uint64_t ts)
 	return (ts/204800)%GSM_MAX_FN;
 }
 
+/* DIAG timestamps consist of two parts:
+ * upper 48 bits: time since Jan 6 1980 00:00:00 (GPS) in 1.25ms units
+ * lower 16 bits: time since last 1.25ms tick in 1/32 chip units */
 uint32_t diag_ts_to_epoch(uint64_t qd_time)
 {
 	double qd_ts;
 
-	qd_ts = osmo_load64le(&qd_time);
-	qd_ts *= 1.25*256.0/1000.0;
+	qd_ts = osmo_load64le(&qd_time) >> 16;
+	qd_ts *= 1.25;
+	qd_ts /= 1000.0;
 
 	/* Sanity check on timestamp (year > 2011) */
 	if (qd_ts < 1000000000) {
@@ -56,7 +60,8 @@ uint32_t diag_ts_to_epoch(uint64_t qd_time)
 		if (0 == rv)
 			return tv.tv_sec;
 	} else {
-		/* Adjust timestamp from GPS to UNIX */
+		/* Adjust timestamp from GPS to UNIX, i.e. number of
+		 * seconds between 1970 and Jan 6 1980 */
 		qd_ts += 315964800.0;
 	}
 

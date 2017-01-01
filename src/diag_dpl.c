@@ -24,6 +24,7 @@
 
 #include "diag_log.h"
 #include "diag_io.h"
+#include "diag_dpl.h"
 #include "protocol/diagcmd.h"
 #include "protocol/diag_log_1x.h"
 #include "protocol/dpl.h"
@@ -83,7 +84,7 @@ int diag_dpl_get_if_desc(struct diag_instance *di, uint8_t iface_id)
 	printf("DPL Interface %u \"%s\" num_links=%u\n", if_num, if_name, num_links);
 	link_name = (char *) rx->l3h+1+strlen(if_name)+1+1;
 	for (i = 0; i < num_links; i++) {
-		printf("\tLink %u: %s\n", i, link_name);
+		printf("\tLink %u: \"%s\"\n", i, link_name);
 		link_name += strlen(link_name) + 1;
 	}
 	msgb_free(rx);
@@ -91,7 +92,7 @@ int diag_dpl_get_if_desc(struct diag_instance *di, uint8_t iface_id)
 }
 
 int diag_dpl_set_if_log(struct diag_instance *di, uint8_t iface_id,
-			uint32_t iid, uint32_t link_type)
+			struct dpl_iid iid, uint32_t link_type)
 {
 	struct msgb *msg = msgb_alloc_diag();
 	struct dpl_set_if_log_req *silr;
@@ -117,7 +118,7 @@ int diag_dpl_set_if_log(struct diag_instance *di, uint8_t iface_id,
 static void handle_pcap_msg(struct log_hdr *lh, struct msgb *msg)
 {
 	struct dpl_hdr *dh = (struct dpl_hdr *) msgb_data(msg);
-	printf("(fl=0x%02x, ifn=0x%02x, prot=0x%02x, inst=%u, seq=%u, seg=%u): %s",
+	printf("PCAP(fl=0x%02x, ifn=0x%02x, prot=0x%02x, inst=%u, seq=%u, seg=%u): %s\n",
 		dh->iid.flags, dh->iid.if_name, dh->iid.protocol,
 		dh->iid.link_instance, dh->seq_nr, dh->seg_num,
 		osmo_hexdump(dh->data, msgb_length(msg)-sizeof(*dh)));

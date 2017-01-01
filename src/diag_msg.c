@@ -93,12 +93,12 @@ static void diag_rx_ext_msg_f(struct diag_instance *di, struct msgb *msgb)
 	}
 
 	msg = (struct ext_log_msg *) data;
-	num_args = msg->num_args;
+	num_args = msg->hdr.num_args;
 	fmt = (const char *) msg->params + num_args*sizeof(msg->params[0]);
 	file = fmt + strlen(fmt) + 1;
 
 	printf("MSG(%u|%u|%s:%u): ", osmo_load16le(&msg->subsys_id),
-		diag_ts_to_epoch(osmo_load64le(&msg->timestamp)),
+		diag_ts_to_epoch(osmo_load64le(&msg->hdr.timestamp)),
 		file, osmo_load16le(&msg->line_nr));
 	switch (num_args) {
 	case 0:
@@ -126,8 +126,54 @@ static void diag_rx_ext_msg_f(struct diag_instance *di, struct msgb *msgb)
 	fputc('\n', stdout);
 }
 
+static void diag_rx_ext_msg_terse_f(struct diag_instance *di, struct msgb *msgb)
+{
+	const uint8_t *data = msgb_data(msgb);
+	const size_t len = msgb_length(msgb);
+	const struct qsr_ext_msg_terse *msg;
+	unsigned int num_args;
+
+	if (len < sizeof(struct qsr_ext_msg_terse)) {
+		printf("too short ext_log_msg.\n");
+		return;
+	}
+
+	msg = (struct qsr_ext_msg_terse *) data;
+	num_args = msg->hdr.num_args;
+
+	printf("MSG_QS(%u|%u|%08x:%u): ", osmo_load16le(&msg->subsys_id),
+		diag_ts_to_epoch(osmo_load64le(&msg->hdr.timestamp)),
+		osmo_load32le(&msg->hash), osmo_load16le(&msg->line_nr));
+	switch (num_args) {
+	case 0:
+		fputs("", stdout);
+		break;
+	case 1:
+		printf("%08x", osmo_load32le(&msg->params[0]));
+		break;
+	case 2:
+		printf("%08x %08x", osmo_load32le(&msg->params[0]),
+			    osmo_load32le(&msg->params[1]));
+		break;
+	case 3:
+		printf("%08x %08x %08x", osmo_load32le(&msg->params[0]),
+			    osmo_load32le(&msg->params[1]),
+			    osmo_load32le(&msg->params[2]));
+		break;
+	case 4:
+		printf("%08x %08x %08x %08x", osmo_load32le(&msg->params[0]),
+			    osmo_load32le(&msg->params[1]),
+			    osmo_load32le(&msg->params[2]),
+			    osmo_load32le(&msg->params[3]));
+		break;
+	}
+	fputc('\n', stdout);
+}
+
+
 struct diag_cmd_dispatch_tbl cmd_tbl[] = {
 	{ DIAG_EXT_MSG_F, diag_rx_ext_msg_f },
+	{ DIAG_QSR_EXT_MSG_TERSE_F, diag_rx_ext_msg_terse_f },
 };
 
 static __attribute__((constructor)) void on_dso_load_msg(void)

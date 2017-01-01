@@ -23,14 +23,17 @@ struct msgb;
  * Extended Message Service (DIAG_EXT_MSG_F)
  ***********************************************************************/
 
-struct ext_log_msg {
-	/* msg_hdr_type equivalent */
-	uint8_t		type;
-	uint8_t		ts_type;	/* timestamp tyoe */
-	uint8_t		num_args;	/* number of arguments */
-	uint8_t		drop_cnt;	/* dropped messages */
-	uint64_t	timestamp;	/* More 32 bit but dm-commands.h */
+/* message header */
+struct diag_msg_hdr {
+	uint8_t		cmd_code;
+	uint8_t		ts_type;
+	uint8_t		num_args;
+	uint8_t		drop_cnt;
+	uint64_t	timestamp;
+} __attribute__((packed));
 
+struct ext_log_msg {
+	struct diag_msg_hdr hdr;
 	/* msg_desc_type */
 	uint16_t	line_nr;
 	uint16_t	subsys_id;
@@ -39,31 +42,15 @@ struct ext_log_msg {
 	int32_t		params[0];	/* three params */
 } __attribute__((packed));
 
+struct qsr_ext_msg_terse {
+	struct diag_msg_hdr hdr;
 
-/* message header */
-struct diag_msg_hdr {
-	uint8_t		cmd_code;
-	uint8_t		timestamp_type;
-	uint8_t		num_args;
-	uint8_t		drop_count;
-	uint64_t	ts;
-} __attribute__((packed));
-
-/* message descriptor */
-struct diag_msg_desc {
-	uint16_t	line;
+	uint16_t	line_nr;
 	uint16_t	subsys_id;
-	uint16_t	subsys_mask;
-} __attribute__((packed));
-
-/* message header for DIAG_EXT_MSG_F */
-struct diag_msg_ext {
-	struct diag_msg_hdr	hdr;
-	struct diag_msg_desc	desc;
-	uint32_t		args[0];	/* see hdr.num_args */
-	/* followed by null-terminated strings */
-} __attribute__((packed));
-
+	uint32_t	subsys_mask;
+	uint32_t	hash;
+	int32_t		params[0];
+};
 
 /***********************************************************************
  * Log Service (IAG_LOG_F)

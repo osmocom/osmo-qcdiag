@@ -149,14 +149,12 @@ struct msgb *diag_transceive_msg(struct diag_instance *di, struct msgb *tx)
 
 	/* transmit the tx message */
 	diag_transmit_msgb(di, tx);
-	printf("Tx, waiting for Rx\n");
 
 	/* blocking loop and process incoming messages until there is
 	 * one for which we don't have a parser registered, let's assume
 	 * that this is our response */
 	while (1) {
 		rx = diag_read_msg(di);
-		printf("Rx, handing off...");
 		if (rx) {
 			rc = diag_process_msg(di, rx);
 			printf("rc = %d\n", rc);

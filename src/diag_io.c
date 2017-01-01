@@ -158,7 +158,6 @@ struct msgb *diag_transceive_msg(struct diag_instance *di, struct msgb *tx)
 		rx = diag_read_msg(di);
 		if (rx) {
 			rc = diag_process_msg(di, rx);
-			printf("rc = %d\n", rc);
 			if (rc == 0)
 				return rx;
 		}

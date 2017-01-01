@@ -96,7 +96,7 @@ int diag_rx_ext_msg_f(struct diag_instance *di, struct msgb *msgb)
 	fmt = (const char *) msg->params + num_args*sizeof(msg->params[0]);
 	file = fmt + strlen(fmt) + 1;
 
-	printf("MSG(%u|%s:%u): ", diag_ts_to_epoch(msg->timestamp), file, msg->line_nr);
+	printf("MSG(%u|%u|%s:%u): ", msg->subsys_id, diag_ts_to_epoch(msg->timestamp), file, msg->line_nr);
 	switch (num_args) {
 	case 0:
 		fputs(fmt, stdout);

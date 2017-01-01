@@ -102,7 +102,7 @@ void diag_log_reg_dispatch(const struct diag_log_dispatch_tbl *tbl, unsigned int
 
 void diag_log_enable_all_supported_family(struct diag_instance *di, uint8_t family)
 {
-	struct msgb *msg;
+	struct msgb *msg, *rx;
 	unsigned int i, size;
 	unsigned int family_base = (family & 0xf) << 12;
 	unsigned int max = 0;
@@ -125,8 +125,9 @@ void diag_log_enable_all_supported_family(struct diag_instance *di, uint8_t fami
 			log_config_set_mask_bit(msg, i-family_base);
 	}
 
-	diag_transmit_msgb(di, msg);
-	diag_read(di);
+	rx = diag_transceive_msg(di, msg);
+	/* FIXME */
+	msgb_free(rx);
 }
 
 void diag_log_enable_all_supported(struct diag_instance *di)

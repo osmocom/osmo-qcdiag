@@ -25,7 +25,13 @@
 
 #include "protocol/protocol.h"
 #include "diag_io.h"
+#include "diag_cmd.h"
 #include "diagchar_hdlc.h"
+
+struct msgb *msgb_alloc_diag(void)
+{
+	return msgb_alloc(DIAG_MAX_REQ_SIZE, "DIAG Tx");
+}
 
 /* transmit a msgb containing a DIAG message over the given fd */
 int diag_transmit_msgb(struct diag_instance *di, struct msgb *msg)
@@ -61,7 +67,7 @@ int diag_transmit_msgb(struct diag_instance *di, struct msgb *msg)
 /* transmit a message from a buffer (nto msgb) as DIAG over the given fd */
 int diag_transmit_buf(struct diag_instance *di, const uint8_t *data, size_t data_len)
 {
-	struct msgb *msg = msgb_alloc(DIAG_MAX_REQ_SIZE, "DIAG Tx");
+	struct msgb *msg = msgb_alloc_diag();
 
 	memcpy(msg->tail, data, data_len);
 	msgb_put(msg, data_len);
@@ -69,7 +75,7 @@ int diag_transmit_buf(struct diag_instance *di, const uint8_t *data, size_t data
 	return diag_transmit_msgb(di, msg);
 }
 
-int diag_read(struct diag_instance *di)
+struct msgb *diag_read_msg(struct diag_instance *di)
 {
 	uint8_t buf[DIAG_MAX_HDLC_BUF_SIZE];
 	struct diag_hdlc_decode_type hdlc_decode;
@@ -78,9 +84,9 @@ int diag_read(struct diag_instance *di)
 
 	/* read raw data into buffer */
 	rc = read(di->fd, buf, sizeof(buf));
-	if (rc <= 0 ) {
+	if (rc <= 0) {
 		fprintf(stderr, "Short read!\n");
-		return -EIO;
+		exit(1);
 	}
 
 	if (!di->rx.msg) {
@@ -102,7 +108,7 @@ int diag_read(struct diag_instance *di)
 		fprintf(stderr, "Dropping packet. pkt_size: %d, max: %d\n",
 			msgb_length(msg) + hdlc_decode.dest_idx,
 			DIAG_MAX_REQ_SIZE);
-		return -EIO;
+		return NULL;
 	}
 
 	msgb_put(msg, hdlc_decode.dest_idx);
@@ -112,22 +118,71 @@ int diag_read(struct diag_instance *di)
 		rc = crc_check(msgb_data(msg), msgb_length(msg));
 		if (rc) {
 			fprintf(stderr, "Bad CRC, dropping packet\n");
-			msgb_free(msg);
-			return -EINVAL;
+			//msgb_free(msg);
+			//return NULL;
 		}
 		msgb_get(msg, HDLC_FOOTER_LEN);
 
 		if (msgb_length(msg) < 1) {
 			fprintf(stderr, "Message too short, len: %u\n", msgb_length(msg));
 			msgb_free(msg);
-			return -EINVAL;
+			return NULL;
 		}
-
-		if (di->rx.rcvmsg)
-			(di->rx.rcvmsg)(di, msg);
-		else
-			msgb_free(msg);
+		return msg;
 	}
 
-	return 0;
+	return NULL;
 };
+
+/* transmit a message, wait for response, return response */
+struct msgb *diag_transceive_msg(struct diag_instance *di, struct msgb *tx)
+{
+	struct msgb *rx;
+	int rc;
+
+	/* transmit the tx message */
+	diag_transmit_msgb(di, tx);
+	printf("Tx, waiting for Rx\n");
+
+	/* blocking loop and process incoming messages until there is
+	 * one for which we don't have a parser registered, let's assume
+	 * that this is our response */
+	while (1) {
+		rx = diag_read_msg(di);
+		printf("Rx, handing off...");
+		if (rx) {
+			rc = diag_process_msg(di, rx);
+			printf("rc = %d\n", rc);
+			if (rc == 0)
+				return rx;
+		}
+	}
+	return NULL;
+}
+
+/* transmit a message, wait for response, then ignore response */
+void diag_transceive_msg_ign(struct diag_instance *di, struct msgb *tx)
+{
+	struct msgb *rx;
+
+	rx = diag_transceive_msg(di, tx);
+	msgb_free(rx);
+}
+
+/* transmit a message from a buffer, wait for response, return it */
+struct msgb *diag_transceive_buf(struct diag_instance *di, const uint8_t *data, size_t data_len)
+{
+	struct msgb *msg = msgb_alloc_diag();
+
+	memcpy(msg->tail, data, data_len);
+	msgb_put(msg, data_len);
+
+	return diag_transceive_msg(di, msg);
+}
+
+/* transmit a message from a buffer, wait for response, ignore it */
+void diag_transceive_buf_ign(struct diag_instance *di, const uint8_t *data, size_t data_len)
+{
+	struct msgb *rx = diag_transceive_buf(di, data, data_len);
+	msgb_free(rx);
+}

@@ -58,8 +58,11 @@ struct msgb *gen_msg_config_set_rt_mask(uint16_t ssid, uint32_t runtime_mask)
 int diag_msg_config_set_rt_mask(struct diag_instance *di, uint16_t ssid, uint32_t runtime_mask)
 {
 	struct msgb *msg = gen_msg_config_set_rt_mask(ssid, runtime_mask);
-	diag_transmit_msgb(di, msg);
-	diag_read(di);
+	struct msgb *rx;
+
+	rx = diag_transceive_msg(di, msg);
+	/* FIXME */
+	msgb_free(rx);
 
 	return 0;
 }

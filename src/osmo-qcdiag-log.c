@@ -40,28 +40,9 @@
 #include "diag_io.h"
 #include "diag_log.h"
 #include "diag_msg.h"
+#include "diag_cmd.h"
 #include "protocol/protocol.h"
 #include "protocol/diagcmd.h"
-
-/*********/
-
-static void diag_process_msg(struct diag_instance *di, struct msgb *msg)
-{
-	switch (msg->l2h[0]) {
-	case DIAG_LOG_F:
-		diag_log_handle(di, msg);
-		break;
-	case DIAG_EXT_MSG_F:
-		diag_rx_ext_msg_f(di, msg);
-		break;
-	default:
-		printf("Got %d bytes data of unknown payload type 0x%02x: %s\n",
-			msgb_length(msg), msg->l2h[0],
-			osmo_hexdump(msgb_data(msg), msgb_length(msg)));
-		break;
-	}
-	msgb_free(msg);
-}
 
 static void do_configure(struct diag_instance *di)
 {
@@ -74,16 +55,13 @@ static void do_configure(struct diag_instance *di)
 	};
 
 	/* TODO: introduce a wait for response kind of method */
-	diag_transmit_buf(di, timestamp, sizeof(timestamp));
-	diag_read(di);
+	diag_transceive_buf_ign(di, timestamp, sizeof(timestamp));
 
 	/* enable|disable the event report */
 #if 0
-	diag_transmit_buf(di, enable_evt_report, sizeof(enable_evt_report));
-	diag_read(di);
+	diag_transceive_buf_ign(di, enable_evt_report, sizeof(enable_evt_report));
 #else
-	diag_transmit_buf(di, disable_evt_report, sizeof(disable_evt_report));
-	diag_read(di);
+	diag_transceive_buf_ign(di, disable_evt_report, sizeof(disable_evt_report));
 #endif
 	diag_msg_config_set_rt_mask(di, MSG_SSID_LINUX_DATA, 0xffffffff);
 	diag_msg_config_set_rt_mask(di, 5012, 0xffffffff);
@@ -115,8 +93,7 @@ static void do_configure(struct diag_instance *di)
 	log_config_set_mask_bit(msg, LOG_EGPRS_MAC_UL_ACKNACK_C);
 	log_config_set_mask_bit(msg, LOG_EGPRS_MAC_DL_ACKNACK_C);
 
-	diag_transmit_msgb(di, msg);
-	diag_read(di);
+	diag_tranceive_msgb(di, msg);
 
 	printf("WCDMA\n");
 	msg = gen_log_config_set_mask(4, 1064);
@@ -130,8 +107,7 @@ static void do_configure(struct diag_instance *di)
 	log_config_set_mask_bit(msg, 0x128);
 	log_config_set_mask_bit(msg, 0x129);
 
-	diag_transmit_msgb(di, msg);
-	diag_read(di);
+	diag_tranceive_msgb(di, msg);
 #else
 	diag_log_enable_all_supported(di);
 #endif
@@ -150,7 +126,6 @@ int main(int argc, char **argv)
 	}
 
 	memset(&di, 0, sizeof(di));
-	di.rx.rcvmsg = &diag_process_msg;
 	di.fd = osmo_serial_init(argv[1], 921600);
 	if (di.fd < 0)
 		return EXIT_FAILURE;
@@ -162,9 +137,9 @@ int main(int argc, char **argv)
 
 	while (1) {
 		i++;
-		rc = diag_read(&di);
-		if (rc == -EIO)
-			break;
+		struct msgb *rx = diag_read_msg(&di);
+		if (rx)
+			diag_process_msg(&di, rx);
 #if 0
 		/* some packets need to be explicitly requested and
 		 * don't appear automatically */

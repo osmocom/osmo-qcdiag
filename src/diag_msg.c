@@ -59,12 +59,22 @@ int diag_msg_config_set_rt_mask(struct diag_instance *di, uint16_t ssid, uint32_
 {
 	struct msgb *msg = gen_msg_config_set_rt_mask(ssid, runtime_mask);
 	struct msgb *rx;
+	struct diag_set_rt_mask_req *res;
+	int rc = 0;
 
 	rx = diag_transceive_msg(di, msg);
-	/* FIXME */
+	res = (struct diag_set_rt_mask_req *) (msgb_l2(msg)+1);
+	if ((rx->l2h[0] != 0x5d) || res->cmd_code != 0x5d ||
+	    res->sub_cmd != MSG_EXT_SUBCMD_SET_RT_MASK ||
+	    osmo_load16le(&res->ssid_start) != ssid ||
+	    osmo_load16le(&res->ssid_end) != ssid ||
+	    osmo_load32le(&res->runtime_mask) != runtime_mask) {
+		fprintf(stderr, "Error setting RT mask\n");
+		rc = -1;
+	}
 	msgb_free(rx);
 
-	return 0;
+	return rc;
 }
 
 /* handler for EXT MSG */

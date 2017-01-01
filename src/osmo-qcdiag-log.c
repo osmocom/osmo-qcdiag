@@ -54,20 +54,26 @@ static void do_configure(struct diag_instance *di)
 		DIAG_EVENT_REPORT_F, 0x00
 	};
 
-	/* TODO: introduce a wait for response kind of method */
 	diag_transceive_buf_ign(di, timestamp, sizeof(timestamp));
+	/* response: 3d 67 a8 81 d4 46 6d d9 00 */
 
 	/* enable|disable the event report */
 #if 0
 	diag_transceive_buf_ign(di, enable_evt_report, sizeof(enable_evt_report));
 #else
 	diag_transceive_buf_ign(di, disable_evt_report, sizeof(disable_evt_report));
+	/* response: 40 00 00 */
 #endif
 	diag_msg_config_set_rt_mask(di, MSG_SSID_LINUX_DATA, 0xffffffff);
+	/* response: 5d 5d 04 41 00 41 00 01 00 ff ff ff ff */
 	diag_msg_config_set_rt_mask(di, 5012, 0xffffffff);
+	/* response: 5d 5d 04 94 13 94 13 01 00 ff ff ff ff */
 	diag_msg_config_set_rt_mask(di, 5000, 0xffffffff);
+	/* response: 5d 5d 04 88 13 88 13 01 00 ff ff ff ff */
 	diag_msg_config_set_rt_mask(di, 5030, 0xffffffff);
+	/* response: 5d 5d 04 a6 13 a6 13 01 00 ff ff ff ff */
 	diag_msg_config_set_rt_mask(di, 5009, 0xffffffff);
+	/* response: 5d 5d 04 91 13 91 13 01 00 ff ff ff ff */
 
 #if 0
 	printf("GSM\n");

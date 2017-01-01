@@ -23,6 +23,8 @@ int diag_transmit_buf(struct diag_instance *di, const uint8_t *data, size_t data
 struct msgb *diag_read_msg(struct diag_instance *di);
 int diag_process_msg(struct diag_instance *di, struct msgb *msg);
 struct msgb *diag_transceive_msg(struct diag_instance *di, struct msgb *tx);
+struct msgb *diag_subsys_transceive_msg(struct diag_instance *di, struct msgb *tx,
+					uint8_t subsys, uint16_t code);
 void diag_transceive_msg_ign(struct diag_instance *di, struct msgb *tx);
 struct msgb *diag_transceive_buf(struct diag_instance *di, const uint8_t *data, size_t data_len);
 void diag_transceive_buf_ign(struct diag_instance *di, const uint8_t *data, size_t data_len);

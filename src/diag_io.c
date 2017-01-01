@@ -166,6 +166,27 @@ struct msgb *diag_transceive_msg(struct diag_instance *di, struct msgb *tx)
 	return NULL;
 }
 
+struct msgb *diag_subsys_transceive_msg(struct diag_instance *di, struct msgb *tx,
+					uint8_t subsys, uint16_t code)
+{
+	struct msgb *rx;
+	struct diagpkt_subsys_hdr *dsh;
+
+	diag_push_subsys_hdr(tx, subsys, code);
+	rx = diag_transceive_msg(di, tx);
+	if (!rx)
+		return NULL;
+	dsh = (struct diagpkt_subsys_hdr *) rx->l2h;
+	if (msgb_l2len(rx) < sizeof(*dsh) ||
+	    dsh->subsys_id != subsys ||
+	    osmo_load16le(&dsh->subsys_cmd_code) != code) {
+		msgb_free(rx);
+		return NULL;
+	}
+	rx->l3h = rx->l2h + sizeof(*dsh);
+	return rx;
+}
+
 /* transmit a message, wait for response, then ignore response */
 void diag_transceive_msg_ign(struct diag_instance *di, struct msgb *tx)
 {

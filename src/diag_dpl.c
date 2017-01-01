@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <errno.h>
+#include <string.h>
 #include <osmocom/core/utils.h>
 #include <osmocom/core/msgb.h>
 
@@ -48,10 +50,14 @@ int diag_dpl_get_sup_if(struct diag_instance *di)
 {
 	struct msgb *msg = msgb_alloc_diag();
 	struct msgb *rx;
-	diag_push_subsys_hdr(msg, DIAG_SUBSYS_PS_DATA_LOGGING,
-			     DIAG_DPL_GET_SUPPORTED_IFACES);
-	rx = diag_transceive_msg(di, msg);
-	/* FIXME */
+	struct dpl_get_sup_if_resp *gsir;
+	rx = diag_subsys_transceive_msg(di, msg, DIAG_SUBSYS_PS_DATA_LOGGING,
+					DIAG_DPL_GET_SUPPORTED_IFACES);
+	if (!rx)
+		return -EINVAL;
+	gsir = (struct dpl_get_sup_if_resp *) msg->l3h;
+	printf("DPL Supported interfaces: %s\n",
+		osmo_hexdump(gsir->iface_id, gsir->num_ifaces));
 	msgb_free(rx);
 	return 0;
 }
@@ -61,13 +67,25 @@ int diag_dpl_get_if_desc(struct diag_instance *di, uint8_t iface_id)
 	struct msgb *msg = msgb_alloc_diag();
 	struct msgb *rx;
 	struct dpl_get_if_desc_req *gidr;
+	uint8_t if_num, num_links;
+	char *if_name, *link_name;
+	unsigned int i;
 
 	gidr = (struct dpl_get_if_desc_req *) msgb_put(msg, sizeof(*gidr));
 	gidr->iface_id = iface_id;
-	diag_push_subsys_hdr(msg, DIAG_SUBSYS_PS_DATA_LOGGING,
-			     DIAG_DPL_GET_IFACE_DESC);
-	rx = diag_transceive_msg(di, msg);
-	/* FIXME */
+	rx = diag_subsys_transceive_msg(di, msg, DIAG_SUBSYS_PS_DATA_LOGGING,
+					DIAG_DPL_GET_IFACE_DESC);
+	if (!rx)
+		return -EINVAL;
+	if_num = rx->l3h[0];
+	if_name = (char *)rx->l3h+1;
+	num_links = *(rx->l3h+1+strlen(if_name)+1);
+	printf("DPL Interface %u \"%s\" num_links=%u\n", if_num, if_name, num_links);
+	link_name = (char *) rx->l3h+1+strlen(if_name)+1+1;
+	for (i = 0; i < num_links; i++) {
+		printf("\tLink %u: %s\n", i, link_name);
+		link_name += strlen(link_name) + 1;
+	}
 	msgb_free(rx);
 	return 0;
 }

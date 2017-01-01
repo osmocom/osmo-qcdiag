@@ -52,10 +52,6 @@ int diag_process_msg(struct diag_instance *di, struct msgb *msg)
 		diag_log_handle(di, msg);
 		msgb_free(msg);
 		return 1;
-	case DIAG_EXT_MSG_F:
-		diag_rx_ext_msg_f(di, msg);
-		msgb_free(msg);
-		return 1;
 	default:
 		if (cmd_handlers[cmd]) {
 			(cmd_handlers[cmd])(di, msg);

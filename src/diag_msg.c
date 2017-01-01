@@ -26,6 +26,7 @@
 
 #include "protocol/protocol.h"
 #include "diag_msg.h"
+#include "diag_cmd.h"
 #include "protocol/diagcmd.h"
 
 struct diag_set_rt_mask_req {
@@ -78,7 +79,7 @@ int diag_msg_config_set_rt_mask(struct diag_instance *di, uint16_t ssid, uint32_
 }
 
 /* handler for EXT MSG */
-int diag_rx_ext_msg_f(struct diag_instance *di, struct msgb *msgb)
+static void diag_rx_ext_msg_f(struct diag_instance *di, struct msgb *msgb)
 {
 	const uint8_t *data = msgb_data(msgb);
 	const size_t len = msgb_length(msgb);
@@ -88,7 +89,7 @@ int diag_rx_ext_msg_f(struct diag_instance *di, struct msgb *msgb)
 
 	if (len < sizeof(struct ext_log_msg)) {
 		printf("too short ext_log_msg.\n");
-		return -1;
+		return;
 	}
 
 	msg = (struct ext_log_msg *) data;
@@ -123,7 +124,13 @@ int diag_rx_ext_msg_f(struct diag_instance *di, struct msgb *msgb)
 		break;
 	}
 	fputc('\n', stdout);
-	return 0;
 }
 
+struct diag_cmd_dispatch_tbl cmd_tbl[] = {
+	{ DIAG_EXT_MSG_F, diag_rx_ext_msg_f },
+};
 
+static __attribute__((constructor)) void on_dso_load_msg(void)
+{
+	diag_cmd_reg_dispatch(cmd_tbl, ARRAY_SIZE(cmd_tbl));
+}

@@ -30,7 +30,7 @@
 
 struct msgb *msgb_alloc_diag(void)
 {
-	return msgb_alloc(DIAG_MAX_REQ_SIZE, "DIAG Tx");
+	return msgb_alloc_headroom(DIAG_MAX_REQ_SIZE+16, 16, "DIAG Tx");
 }
 
 /* transmit a msgb containing a DIAG message over the given fd */

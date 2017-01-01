@@ -4,6 +4,8 @@
 #include <osmocom/core/msgb.h>
 #include <osmocom/core/gsmtap_util.h>
 
+#define DIAG_INST_F_HEXDUMP	0x00000001
+
 struct diag_instance {
 	int fd;
 	struct {
@@ -12,6 +14,7 @@ struct diag_instance {
 	struct {
 	} tx;
 	struct gsmtap_inst *gsmtap;
+	uint32_t flags;
 };
 
 struct msgb *msgb_alloc_diag(void);

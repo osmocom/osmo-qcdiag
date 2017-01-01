@@ -41,6 +41,9 @@ int diag_transmit_msgb(struct diag_instance *di, struct msgb *msg)
 	struct diag_send_desc_type send;
 	struct diag_hdlc_dest_type enc = { NULL, NULL, 0 };
 
+	if (di->flags & DIAG_INST_F_HEXDUMP)
+		printf("Tx: %s\n", msgb_hexdump(msg));
+
 	send.state = DIAG_STATE_START;
 	send.pkt = msgb_data(msg);
 	send.last = msgb_data(msg) + msgb_length(msg) - 1;
@@ -128,6 +131,10 @@ struct msgb *diag_read_msg(struct diag_instance *di)
 			msgb_free(msg);
 			return NULL;
 		}
+
+		if (di->flags & DIAG_INST_F_HEXDUMP)
+			printf("Rx: %s\n", msgb_hexdump(msg));
+
 		return msg;
 	}
 

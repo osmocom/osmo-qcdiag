@@ -20,7 +20,7 @@
 #include "protocol/protocol.h"
 #include "protocol/diagcmd.h"
 
-int diag_push_subsys_hdr(struct msgb *msg, uint8_t subsys, uint8_t code)
+int diag_push_subsys_hdr(struct msgb *msg, uint8_t subsys, uint16_t code)
 {
 	struct diagpkt_subsys_hdr *ssh;
 	ssh = (struct diagpkt_subsys_hdr *) msgb_push(msg, sizeof(*ssh));

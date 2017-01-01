@@ -98,6 +98,7 @@ struct msgb *diag_read_msg(struct diag_instance *di)
 	}
 	msg = di->rx.msg;
 
+	memset(&hdlc_decode, 0, sizeof(hdlc_decode));
 	hdlc_decode.dest_ptr = msg->tail;
 	hdlc_decode.dest_size = msgb_tailroom(msg);
 	hdlc_decode.src_ptr = buf;

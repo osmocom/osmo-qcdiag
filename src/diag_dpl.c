@@ -65,7 +65,7 @@ int diag_dpl_get_if_desc(struct diag_instance *di, uint8_t iface_id)
 	gidr = (struct dpl_get_if_desc_req *) msgb_put(msg, sizeof(*gidr));
 	gidr->iface_id = iface_id;
 	diag_push_subsys_hdr(msg, DIAG_SUBSYS_PS_DATA_LOGGING,
-			     DIAG_DPL_GET_SUPPORTED_IFACES);
+			     DIAG_DPL_GET_IFACE_DESC);
 	rx = diag_transceive_msg(di, msg);
 	/* FIXME */
 	msgb_free(rx);

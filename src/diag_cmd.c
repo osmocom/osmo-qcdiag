@@ -52,6 +52,15 @@ int diag_process_msg(struct diag_instance *di, struct msgb *msg)
 		diag_log_handle(di, msg);
 		msgb_free(msg);
 		return 1;
+	case DIAG_BAD_CMD_F:
+		fprintf(stderr, "BAD COMMAND: %s\n", msgb_hexdump(msg));
+		return 0;
+	case DIAG_BAD_PARM_F:
+		fprintf(stderr, "BAD PARAMETER: %s\n", msgb_hexdump(msg));
+		return 0;
+	case DIAG_BAD_LEN_F:
+		fprintf(stderr, "BAD LENGTH: %s\n", msgb_hexdump(msg));
+		return 0;
 	default:
 		if (cmd_handlers[cmd]) {
 			(cmd_handlers[cmd])(di, msg);

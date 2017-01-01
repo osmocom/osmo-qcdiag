@@ -80,7 +80,7 @@ struct log_hdr {
 struct diagpkt_subsys_hdr {
 	uint8_t		command;	/* DIAG_SUBSYS_CMD_F */
 	uint8_t		subsys_id;
-	uint8_t		subsys_cmd_code;
+	uint16_t	subsys_cmd_code;
 } __attribute__((packed));
 
 int diag_push_subsys_hdr(struct msgb *msg, uint8_t subsys, uint8_t code);

@@ -126,7 +126,7 @@ void diag_log_enable_all_supported_family(struct diag_instance *di, uint8_t fami
 	}
 
 	rx = diag_transceive_msg(di, msg);
-	if (rx->l2h[0] != 0x53)
+	if (rx->l2h[0] != DIAG_LOG_CONFIG_F)
 		fprintf(stderr, "Error enabling logs for family %d\n", family);
 	/* FIXME: further validation of response */
 	msgb_free(rx);

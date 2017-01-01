@@ -66,13 +66,13 @@ static void do_configure(struct diag_instance *di)
 #endif
 	diag_msg_config_set_rt_mask(di, MSG_SSID_LINUX_DATA, 0xffffffff);
 	/* response: 5d 5d 04 41 00 41 00 01 00 ff ff ff ff */
-	diag_msg_config_set_rt_mask(di, 5012, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, MSG_SSID_DS_ATCOP, 0xffffffff);
 	/* response: 5d 5d 04 94 13 94 13 01 00 ff ff ff ff */
-	diag_msg_config_set_rt_mask(di, 5000, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, MSG_SSID_DS, 0xffffffff);
 	/* response: 5d 5d 04 88 13 88 13 01 00 ff ff ff ff */
-	diag_msg_config_set_rt_mask(di, 5030, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, MSG_SSID_DS_IPA, 0xffffffff);
 	/* response: 5d 5d 04 a6 13 a6 13 01 00 ff ff ff ff */
-	diag_msg_config_set_rt_mask(di, 5009, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, MSG_SSID_DS_GPRS, 0xffffffff);
 	/* response: 5d 5d 04 91 13 91 13 01 00 ff ff ff ff */
 
 #if 0

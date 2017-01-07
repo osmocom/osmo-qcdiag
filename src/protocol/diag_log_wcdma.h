@@ -2,9 +2,9 @@
 
 #include <stdint.h>
 
-#define UMTS(x)	(0x4000 + x)
+#define WCDMA(x)	(0x4000 + x)
 
-enum diag_log_code_umts {
+enum diag_log_code_wcdma {
 	LOG_WCDMA_RRC_STATES_C				= 0x125,
 	LOG_WCDMA_RRC_PROTOCOL_ERRORS_C			= 0x126,
 	LOG_WCDMA_CELL_ID_C				= 0x127,

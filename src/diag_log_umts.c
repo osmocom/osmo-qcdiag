@@ -1,25 +1,18 @@
 #include <stdio.h>
 
 #include "diag_log.h"
-#include "protocol/diag_log_gsm.h"
-#include "protocol/diag_log_wcdma.h"
+#include "protocol/diag_log_umts.h"
 
-static void handle_rrc_sig_msg(struct log_hdr *lh, struct msgb *msg)
+static void handle_nas_msg(struct log_hdr *lh, struct msgb *msg)
 {
-	struct diag_umts_rrc_msg *rrm = (struct diag_umts_rrc_msg *) msgb_data(msg);
+	struct diag_umts_nas_ota_msg *nas = (struct diag_umts_nas_ota_msg *) msgb_data(msg);
 
-	printf("RRC: %u %u %u: %s\n", rrm->chan_type, rrm->rb_id, rrm->length,
-		osmo_hexdump(msgb_data(msg), rrm->length));
-}
-
-static void handle_gmm_ota_msg(struct log_hdr *lh, struct msgb *msg)
-{
-	/* FIXME */
+	printf("NAS: %cL %u: %s\n", nas->direction ? 'U':'D', nas->msg_length,
+		osmo_hexdump(msgb_data(msg), nas->msg_length));
 }
 
 static const struct diag_log_dispatch_tbl log_tbl[] = {
-	{ UMTS(LOG_WCDMA_SIGNALING_MSG_C), handle_rrc_sig_msg },
-	{ UMTS(LOG_GPRS_SM_GMM_OTA_MESSAGE_C), handle_gmm_ota_msg },
+	{ UMTS(LOG_UMTS_NAS_OTA_MESSAGE_LOG_PACKET_C), handle_nas_msg },
 };
 
 static __attribute__((constructor)) void on_dso_load_umts(void)

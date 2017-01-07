@@ -169,6 +169,10 @@ static void handle_rlc_rel(struct log_hdr *lh, struct msgb *msg)
 	printf("RLC-%cL-RELEASE { tfi=%u, cause=%u }\n", ud, rli->tfi, rli->cause);
 }
 
+static void handle_gmm_ota_msg(struct log_hdr *lh, struct msgb *msg)
+{
+	printf("GMM-OTA-MESSAGE { FIXME }\n");
+}
 
 static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ GSM(LOG_GPRS_LLC_ME_INFO_C), handle_llc_me_info },
@@ -186,6 +190,7 @@ static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ GSM(LOG_GPRS_MAC_UL_TBF_RELEASE_C), handle_mac_ul_tbf_rel },
 	{ GSM(LOG_GPRS_RLC_UL_STATS_C), handle_rlc_ul_stats },
 	{ GSM(LOG_GPRS_RLC_DL_STATS_C), handle_rlc_dl_stats },
+	{ GSM(LOG_GPRS_SM_GMM_OTA_MESSAGE_C), handle_gmm_ota_msg },
 };
 
 static __attribute__((constructor)) void on_dso_load_gprs(void)

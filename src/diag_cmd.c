@@ -20,6 +20,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <osmocom/core/gsmtap.h>
+#include <osmocom/core/gsmtap_util.h>
+
 #include "protocol/protocol.h"
 #include "protocol/diagcmd.h"
 #include "diag_cmd.h"
@@ -46,6 +49,11 @@ void diag_cmd_reg_dispatch(const struct diag_cmd_dispatch_tbl *tbl, unsigned int
 int diag_process_msg(struct diag_instance *di, struct msgb *msg)
 {
 	uint8_t cmd = msg->l2h[0];
+
+	if (di->gsmtap) {
+		gsmtap_send_ex(di->gsmtap, GSMTAP_TYPE_QC_DIAG, 0, 0, 0,
+				0, 0, 0, 0, msgb_l2(msg), msgb_l2len(msg));
+	}
 
 	switch (cmd) {
 	case DIAG_LOG_F:

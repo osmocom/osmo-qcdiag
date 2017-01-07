@@ -5,6 +5,7 @@
 #include <osmocom/core/gsmtap_util.h>
 
 #define DIAG_INST_F_HEXDUMP	0x00000001
+#define DIAG_INST_F_GSMTAP_DIAG	0x00000002
 
 struct diag_instance {
 	int fd;

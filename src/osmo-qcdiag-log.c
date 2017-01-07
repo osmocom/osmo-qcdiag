@@ -160,6 +160,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 
 	di.gsmtap = gsmtap_source_init("localhost", GSMTAP_UDP_PORT, 0);
+	di.flags = DIAG_INST_F_GSMTAP_DIAG;
 	gsmtap_source_add_sink(di.gsmtap);
 
 	printf("\n===> CONFIGURING\n");

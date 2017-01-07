@@ -23,6 +23,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <osmocom/core/gsmtap.h>
+#include <osmocom/core/gsmtap_util.h>
+
 #include "protocol/protocol.h"
 #include "diag_io.h"
 #include "diag_cmd.h"
@@ -44,6 +47,11 @@ int diag_transmit_msgb(struct diag_instance *di, struct msgb *msg)
 	uint8_t packet[DIAG_MAX_HDLC_BUF_SIZE];
 	struct diag_send_desc_type send;
 	struct diag_hdlc_dest_type enc = { NULL, NULL, 0 };
+
+	if (di->flags & DIAG_INST_F_GSMTAP_DIAG && di->gsmtap) {
+		gsmtap_send_ex(di->gsmtap, GSMTAP_TYPE_QC_DIAG, 0, 0, 0,
+				0, 0, 0, 0, msgb_l2(msg), msgb_l2len(msg));
+	}
 
 	if (di->flags & DIAG_INST_F_HEXDUMP)
 		printf("Tx: %s\n", msgb_hexdump(msg));
@@ -145,6 +153,13 @@ struct msgb *diag_read_msg(struct diag_instance *di)
 
 		if (di->flags & DIAG_INST_F_HEXDUMP)
 			printf("Rx: %s\n", msgb_hexdump(msg));
+
+		if (di->flags & DIAG_INST_F_GSMTAP_DIAG && di->gsmtap) {
+			gsmtap_send_ex(di->gsmtap, GSMTAP_TYPE_QC_DIAG,
+					GSMTAP_ARFCN_F_UPLINK, 0, 0, 0,
+					0, 0, 0, msgb_l2(msg),
+					msgb_l2len(msg));
+		}
 
 		return msg;
 	}

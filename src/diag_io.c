@@ -123,6 +123,12 @@ struct msgb *diag_read_msg(struct diag_instance *di)
 
 	if (rc == HDLC_COMPLETE) {
 		di->rx.msg = NULL;
+
+		if (msgb_length(msg) < 3) {
+			msgb_free(msg);
+			return NULL;
+		}
+
 		rc = crc_check(msgb_data(msg), msgb_length(msg));
 		if (rc) {
 			fprintf(stderr, "Bad CRC, dropping packet\n");

@@ -114,6 +114,9 @@ void diag_log_enable_all_supported_family(struct diag_instance *di, uint8_t fami
 		}
 	}
 
+	if (family == 1)
+		max = 0x1586;
+
 	if (!max)
 		return;
 
@@ -123,6 +126,13 @@ void diag_log_enable_all_supported_family(struct diag_instance *di, uint8_t fami
 	for (i = family_base; i < family_base + 0x1000; i++) {
 		if (log_handlers[i])
 			log_config_set_mask_bit(msg, i-family_base);
+	}
+
+	if (family == 1) {
+		for (i = 0x572; i < 0x585; i++) {
+			printf("Setting log 0x%04x\n", i);
+			log_config_set_mask_bit(msg, i);
+		}
 	}
 
 	rx = diag_transceive_msg(di, msg);

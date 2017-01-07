@@ -46,7 +46,7 @@ struct msgb *gen_msg_config_set_rt_mask(uint16_t ssid, uint32_t runtime_mask)
 	struct diag_set_rt_mask_req *dsrmr;
 
 	msg->l2h = msgb_put(msg, sizeof(*dsrmr));
-	dsrmr = (struct diag_set_rt_mask_req *) msg->l2h;
+	dsrmr = (struct diag_set_rt_mask_req *) msgb_l2(msg);
 	dsrmr->cmd_code = DIAG_EXT_MSG_CONFIG_F;
 	dsrmr->sub_cmd = MSG_EXT_SUBCMD_SET_RT_MASK;
 	osmo_store16le(ssid, &dsrmr->ssid_start);

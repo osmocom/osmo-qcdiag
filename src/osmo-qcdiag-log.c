@@ -41,8 +41,10 @@
 #include "diag_log.h"
 #include "diag_msg.h"
 #include "diag_cmd.h"
+#include "diag_dpl.h"
 #include "protocol/protocol.h"
 #include "protocol/diagcmd.h"
+#include "protocol/diag_log_gsm.h"
 
 static void do_configure(struct diag_instance *di)
 {
@@ -70,10 +72,16 @@ static void do_configure(struct diag_instance *di)
 	/* response: 5d 5d 04 94 13 94 13 01 00 ff ff ff ff */
 	diag_msg_config_set_rt_mask(di, MSG_SSID_DS, 0xffffffff);
 	/* response: 5d 5d 04 88 13 88 13 01 00 ff ff ff ff */
-	diag_msg_config_set_rt_mask(di, MSG_SSID_DS_IPA, 0xffffffff);
+	//diag_msg_config_set_rt_mask(di, MSG_SSID_DS_IPA, 0xffffffff);
 	/* response: 5d 5d 04 a6 13 a6 13 01 00 ff ff ff ff */
 	diag_msg_config_set_rt_mask(di, MSG_SSID_DS_GPRS, 0xffffffff);
 	/* response: 5d 5d 04 91 13 91 13 01 00 ff ff ff ff */
+	diag_msg_config_set_rt_mask(di, MSG_SSID_DS_GSM, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, MSG_SSID_DS_UMTS, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, MSG_SSID_DS_SOCKETS, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, MSG_SSID_DS_SIO, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, MSG_SSID_DS_APPS, 0xffffffff);
+	diag_msg_config_set_rt_mask(di, MSG_SSID_DIAG, 0xffffffff);
 
 #if 0
 	printf("GSM\n");
@@ -119,6 +127,20 @@ static void do_configure(struct diag_instance *di)
 #endif
 }
 
+static void enable_pcap(struct diag_instance *di, uint8_t if_num)
+{
+	struct dpl_iid iid = { .flags = 0, .if_name = if_num,
+			       .protocol = DIAG_DPL_IID_PROT_NET_IP,
+			       .link_instance = 64 };
+#if 1
+	iid.flags &= ~DIAG_DPL_IID_FLAG_DIR_TX;
+	diag_dpl_set_if_log(di, if_num, iid, DIAG_DPL_IID_PROT_LINK_ANY);
+#else
+	iid.flags |= DIAG_DPL_IID_FLAG_DIR_TX;
+	diag_dpl_set_if_log(di, if_num, iid, DIAG_DPL_IID_PROT_LINK_ANY);
+#endif
+}
+
 int main(int argc, char **argv)
 {
 	struct diag_instance di;
@@ -133,13 +155,23 @@ int main(int argc, char **argv)
 
 	memset(&di, 0, sizeof(di));
 	di.fd = osmo_serial_init(argv[1], 921600);
+	//di.flags = 1;
 	if (di.fd < 0)
 		return EXIT_FAILURE;
 
-	do_configure(&di);
-
 	di.gsmtap = gsmtap_source_init("localhost", GSMTAP_UDP_PORT, 0);
 	gsmtap_source_add_sink(di.gsmtap);
+
+	printf("\n===> CONFIGURING\n");
+
+	do_configure(&di);
+	diag_dpl_get_sup_if(&di);
+	for (i = 1; i < 0x56; i++) {
+		diag_dpl_get_if_desc(&di, i);
+		enable_pcap(&di, i);
+	}
+
+	printf("\n===> ENTERING MAIN\n");
 
 	while (1) {
 		i++;

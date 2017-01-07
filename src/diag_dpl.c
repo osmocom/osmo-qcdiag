@@ -100,12 +100,16 @@ int diag_dpl_set_if_log(struct diag_instance *di, uint8_t iface_id,
 
 	silr = (struct dpl_set_if_log_req *) msgb_put(msg, sizeof(*silr));
 	silr->iface_id = iface_id;
-	silr->num_log_flags = 1;
-	msgb_put(msg, sizeof(silr->log_flags[0]));
-	silr->log_flags[0].iid = iid;
-	silr->log_flags[0].link_type = link_type;
-
-	rx = diag_transceive_msg(di, msg);
+	silr->num_log_flags = 0;
+	for (int i = 0; i < 1; i++) {
+		msgb_put(msg, sizeof(silr->log_flags[0]));
+		silr->num_log_flags++;
+		iid.link_instance = i;
+		silr->log_flags[i].iid = iid;
+		silr->log_flags[i].link_type = link_type;
+	}
+	rx = diag_subsys_transceive_msg(di, msg, DIAG_SUBSYS_PS_DATA_LOGGING,
+					DIAG_DPL_SET_IFACE_LOGGING);
 	/* FIXME */
 	msgb_free(rx);
 

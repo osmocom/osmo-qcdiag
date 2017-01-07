@@ -28,6 +28,10 @@
 #include "diag_cmd.h"
 #include "diagchar_hdlc.h"
 
+#include <termios.h>
+#include <stdio.h>
+#include <errno.h>
+
 struct msgb *msgb_alloc_diag(void)
 {
 	return msgb_alloc_headroom(DIAG_MAX_REQ_SIZE+16, 16, "DIAG Tx");

@@ -48,6 +48,8 @@ int diag_transmit_msgb(struct diag_instance *di, struct msgb *msg)
 	struct diag_send_desc_type send;
 	struct diag_hdlc_dest_type enc = { NULL, NULL, 0 };
 
+	msg->l2h = msgb_data(msg);
+
 	if (di->flags & DIAG_INST_F_GSMTAP_DIAG && di->gsmtap) {
 		gsmtap_send_ex(di->gsmtap, GSMTAP_TYPE_QC_DIAG, 0, 0, 0,
 				0, 0, 0, 0, msgb_l2(msg), msgb_l2len(msg));

@@ -50,6 +50,14 @@ struct diag_log_config_set_mask {
 	uint8_t		data[0];
 } __attribute((packed));
 
+static inline unsigned int bytes_rqd_for_bit(unsigned int bit)
+{
+	if (bit % 8)
+		return bit/8 + 1;
+	else
+		return bit/8;
+}
+
 struct msgb *gen_log_config_set_mask(uint32_t equip_id, uint32_t last_item)
 {
 	struct msgb *msg = msgb_alloc(DIAG_MAX_REQ_SIZE, "Diag Tx");
@@ -61,7 +69,7 @@ struct msgb *gen_log_config_set_mask(uint32_t equip_id, uint32_t last_item)
 	dlcsm->hdr.operation = LOG_CONFIG_SET_MASK_OP;
 	dlcsm->equip_id = equip_id;
 	dlcsm->last_item = last_item;
-	msg->l3h = msgb_put(msg, dlcsm->last_item/8);
+	msg->l3h = msgb_put(msg, bytes_rqd_for_bit(dlcsm->last_item));
 
 	return msg;
 }
@@ -74,8 +82,10 @@ int log_config_set_mask_bit(struct msgb *msg, uint32_t bit_in)
 	unsigned int byte = bit_in / 8;
 	unsigned int bit = bit_in % 8;
 
-	if (byte > dlcsm->last_item/8)
+	if (bit_in > dlcsm->last_item) {
+		fprintf(stderr, "bit %u is outside log config bitmask!\n", bit_in);
 		return -1;
+	}
 
 	mask[byte] |= (1 << bit);
 

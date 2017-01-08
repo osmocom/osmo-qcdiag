@@ -100,6 +100,12 @@ static void diag_rx_ext_msg_f(struct diag_instance *di, struct msgb *msgb)
 	printf("MSG(%u|%u|%s:%u): ", osmo_load16le(&msg->subsys_id),
 		diag_ts_to_epoch(osmo_load64le(&msg->hdr.timestamp)),
 		file, osmo_load16le(&msg->line_nr));
+
+	/* replace all '%s' with '%p', as %s obviously doesn't work */
+	for (char *cur = fmt; cur && (cur < fmt + strlen(fmt)); cur = strstr(fmt, "%s")) {
+		cur[1] = 'p';
+	}
+
 	switch (num_args) {
 	case 0:
 		fputs(fmt, stdout);

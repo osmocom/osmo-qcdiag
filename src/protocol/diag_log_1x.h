@@ -6,6 +6,7 @@
 
 enum diag_log_code_1x {
 	LOG_UIM_DATA_C						= 0x98,
+	LOG_UIM_DS_DATA_C					= 0x4ce,
 	LOG_DATA_PROTOCOL_LOGGING_C				= 0x1eb,
 	LOG_DATA_PROTOCOL_LOGGING_NETWORK_IP_RM_TX_80_BYTES_C	= 0x572,
 	LOG_DATA_PROTOCOL_LOGGING_NETWORK_IP_RM_RX_80_BYTES_C	= 0x573,
@@ -28,3 +29,8 @@ enum diag_log_code_1x {
 	LOG_DATA_PROTOCOL_LOGGING_FLOW_UM_TX_80_BYTES_C		= 0x584,
 	LOG_DATA_PROTOCOL_LOGGING_FLOW_UM_TX_FULL_C		= 0x585,
 };
+
+struct diag_log_uim_msg {
+	uint8_t len;
+	uint8_t data[0];
+} __attribute__ ((packed));

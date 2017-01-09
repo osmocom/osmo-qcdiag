@@ -1,2 +1,7 @@
 *.o
-src/qxdm-log
+osmo-qcdiag-log
+*.swp
+tags
+screenlog.*
+*.orig
+*~

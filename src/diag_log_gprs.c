@@ -195,22 +195,27 @@ static void handle_gmm_ota_msg(struct log_hdr *lh, struct msgb *msg)
 }
 
 static const struct diag_log_dispatch_tbl log_tbl[] = {
-	{ GSM(LOG_GPRS_LLC_ME_INFO_C), handle_llc_me_info },
-	{ GSM(LOG_GPRS_LLC_PDU_STATS_C), handle_llc_pdu_stats },
-	{ GSM(LOG_GPRS_LLC_XID_INFO_C), handle_llc_xid_info },
+	/* LLC */
+	{ GSM(LOG_GPRS_LLC_ME_INFO_C), handle_llc_me_info },		/* requested? */
+	{ GSM(LOG_GPRS_LLC_PDU_STATS_C), handle_llc_pdu_stats },	/* requested? */
+	{ GSM(LOG_GPRS_LLC_XID_INFO_C), handle_llc_xid_info },		/* requested? */
+	/* RR */
 	{ GSM(LOG_GPRS_GRR_STATE_C), handle_grr_state_msg },
+	/* RLC */
 	{ GSM(LOG_GPRS_RLC_UL_ABNRML_RLS_COUNTS_C), handle_rlc_ul_abnrml_rls },
 	{ GSM(LOG_GPRS_RLC_UL_EVENT_COUNTS_C), handle_rlc_ul_evt_cnt },
 	{ GSM(LOG_GPRS_RLC_UL_RELEASE_IND_C), handle_rlc_rel },
 	{ GSM(LOG_GPRS_RLC_DL_RELEASE_IND_C), handle_rlc_rel },
-	{ GSM(LOG_GPRS_MAC_SIGNALLING_MESSAGE_C), handle_mac_sign_msg },
+	{ GSM(LOG_GPRS_RLC_UL_STATS_C), handle_rlc_ul_stats },
+	{ GSM(LOG_GPRS_RLC_DL_STATS_C), handle_rlc_dl_stats },
+	/* MAC */
 	{ GSM(LOG_GPRS_MAC_STATE_C), handle_mac_state },
+	{ GSM(LOG_GPRS_MAC_SIGNALLING_MESSAGE_C), handle_mac_sign_msg },
 	{ GSM(LOG_GPRS_MAC_DL_TBF_ESTABLISH_C), handle_mac_dl_tbf_est },
 	{ GSM(LOG_GPRS_MAC_UL_TBF_ESTABLISH_C), handle_mac_ul_tbf_est },
 	{ GSM(LOG_GPRS_MAC_DL_TBF_RELEASE_C), handle_mac_dl_tbf_rel },
 	{ GSM(LOG_GPRS_MAC_UL_TBF_RELEASE_C), handle_mac_ul_tbf_rel },
-	{ GSM(LOG_GPRS_RLC_UL_STATS_C), handle_rlc_ul_stats },
-	{ GSM(LOG_GPRS_RLC_DL_STATS_C), handle_rlc_dl_stats },
+	/* SM/GMM */
 	{ GSM(LOG_GPRS_SM_GMM_OTA_MESSAGE_C), handle_gmm_ota_msg },
 };
 

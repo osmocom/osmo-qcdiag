@@ -221,4 +221,34 @@ struct diag_gprs_llc_stats {
 	uint32_t llpdu_short_err;
 } __attribute__((packed));
 
+struct diag_xid_tuple32 {
+	uint32_t current;
+	uint32_t preferred;
+} __attribute__ ((packed));
+
+struct diag_xid_tuple16 {
+	uint16_t current;
+	uint16_t preferred;
+} __attribute__ ((packed));
+
+struct diag_xid_tuple8 {
+	uint8_t current;
+	uint8_t preferred;
+} __attribute__ ((packed));
+
+/* LOG_GPRS_LLC_XID_INFO_C */
+struct diag_gprs_llc_xid_info {
+	uint8_t gllc_sapi;
+	uint16_t pending_xid_bitmap;
+	uint32_t cur_iov_i;
+	struct diag_xid_tuple32 t200;
+	struct diag_xid_tuple8 n200;
+	struct diag_xid_tuple16 n201_u;
+	struct diag_xid_tuple16 n201_i;
+	struct diag_xid_tuple16 md;
+	struct diag_xid_tuple16 mu;
+	struct diag_xid_tuple8 kd;
+	struct diag_xid_tuple8 ku;
+} __attribute__ ((packed));
+
 struct msgb *diag_gsm_make_log_pack_req(uint16_t log_code, uint8_t zero_stats, uint8_t addl_info);

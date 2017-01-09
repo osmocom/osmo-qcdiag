@@ -61,6 +61,26 @@ static void handle_llc_me_info(struct log_hdr *lh, struct msgb *msg)
 		osmo_hexdump_nospc(gli->enc_key, sizeof(gli->enc_key)));
 }
 
+static void handle_llc_xid_info(struct log_hdr *lh, struct msgb *msg)
+{
+	struct diag_gprs_llc_xid_info *glxi;
+
+	glxi = (struct diag_gprs_llc_xid_info *) msgb_data(msg);
+	printf("LLC-XID-INFO { sapi=%u, pending_xid_bitmap=0x%04x, iov_i=%u, cur/pref "
+		"t200=%u/%u, n200=%u/%u, n201_u=%u/%u, n201_i=%u/%u, md=%u/%u, mu=%u/%u, kd=%u/%u, ku=%u/%u }\n",
+		glxi->gllc_sapi, glxi->pending_xid_bitmap, glxi->cur_iov_i,
+		glxi->t200.current, glxi->t200.preferred,
+		glxi->n200.current, glxi->n200.preferred,
+		glxi->n201_u.current, glxi->n201_u.preferred,
+		glxi->n201_i.current, glxi->n201_i.preferred,
+		glxi->md.current, glxi->md.preferred,
+		glxi->mu.current, glxi->mu.preferred,
+		glxi->kd.current, glxi->kd.preferred,
+		glxi->ku.current, glxi->ku.preferred
+	      );
+}
+
+
 static void handle_llc_pdu_stats(struct log_hdr *lh, struct msgb *msg)
 {
 	struct diag_gprs_llc_stats *gls;
@@ -177,6 +197,7 @@ static void handle_gmm_ota_msg(struct log_hdr *lh, struct msgb *msg)
 static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ GSM(LOG_GPRS_LLC_ME_INFO_C), handle_llc_me_info },
 	{ GSM(LOG_GPRS_LLC_PDU_STATS_C), handle_llc_pdu_stats },
+	{ GSM(LOG_GPRS_LLC_XID_INFO_C), handle_llc_xid_info },
 	{ GSM(LOG_GPRS_GRR_STATE_C), handle_grr_state_msg },
 	{ GSM(LOG_GPRS_RLC_UL_ABNRML_RLS_COUNTS_C), handle_rlc_ul_abnrml_rls },
 	{ GSM(LOG_GPRS_RLC_UL_EVENT_COUNTS_C), handle_rlc_ul_evt_cnt },

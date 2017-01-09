@@ -48,6 +48,7 @@ enum gprs_rlc_dl_state {
 };
 extern struct value_string gprs_rlc_dl_state_vals[7];
 
+/* LOG_GPRS_RLC_UL_STATS_C */
 struct gprs_rlc_ul_stats {
 	uint8_t	rlc_ul_state;
 	uint8_t rlc_ul_substate;
@@ -141,4 +142,42 @@ struct gprs_rlc_dl_header {
 struct gprs_rlc_ul_header {
 	uint8_t type;
 	uint8_t ul_hdr[6];
+} __attribute__ ((packed));
+
+/* LOG_EGPRS_RLC_EPUAN_C */
+struct diag_egprs_rlc_epuan {
+	uint8_t tfi;
+	uint8_t msc;
+	uint8_t final_ack_ind:1,
+		begin_of_window:1,
+		end_of_window:1,
+		resegment_ir_off:1,
+		preemptive_tx:1,
+		starting_color_code:1,
+		_pad:2;
+	uint16_t ssn;
+	uint8_t crrb_num_bits;
+	uint8_t crrb[16];
+	uint8_t urrb_num_bits;
+	uint8_t urrb[20];
+} __attribute__ ((packed));
+
+/* LOG_EGPRS_RLC_EPDAN_C */
+struct diag_egprs_rlc_epdan {
+	uint8_t tfi;
+	uint8_t final_ack_ind:1,
+		begin_of_window:1,
+		end_of_window:1,
+		esp:2,
+		starting_color_code:1,
+		gmsk_valid:1,
+		psk_valid:1;
+	uint16_t ssn;
+	uint8_t crrb_num_bits;
+	uint8_t crrb[16];
+	uint8_t urrb_num_bits;
+	uint8_t urrb[20];
+	uint8_t gmsk_bep;
+	uint8_t psk_bep;
+	uint8_t c_value;
 } __attribute__ ((packed));

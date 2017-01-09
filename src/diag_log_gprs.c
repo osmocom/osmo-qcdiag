@@ -149,6 +149,24 @@ static void handle_mac_ul_tbf_rel(struct log_hdr *lh, struct msgb *msg)
 	printf("MAC-DL-TBF-REL { tfi=%u, fail_cause=%u }\n", tr->tfi, tr->fail_cause);
 }
 
+static void handle_mac_dl_acknack(struct log_hdr *lh, struct msgb *msg)
+{
+	struct gprs_mac_dl_acknack *da;
+	da = (struct gprs_mac_dl_acknack *) msgb_data(msg);
+
+	printf("MAC-DL-ACK-NACK { is_egprs=%d, acknack=%s }\n", da->is_egprs,
+		osmo_hexdump(msgb_data(msg)+1, msgb_length(msg)-1));
+}
+
+static void handle_mac_ul_acknack(struct log_hdr *lh, struct msgb *msg)
+{
+	//struct gprs_mac_ul_acknack *ua;
+	//ua = (struct gprs_mac_ul_acknack *) msgb_data(msg);
+
+	printf("MAC-DL-ACK-NACK { acknack=%s }\n",
+		osmo_hexdump(msgb_data(msg), msgb_length(msg)));
+}
+
 static void handle_rlc_ul_evt_cnt(struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_rlc_ul_event_counts *uec;
@@ -213,6 +231,8 @@ static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ GSM(LOG_GPRS_MAC_SIGNALLING_MESSAGE_C), handle_mac_sign_msg },
 	{ GSM(LOG_GPRS_MAC_DL_TBF_ESTABLISH_C), handle_mac_dl_tbf_est },
 	{ GSM(LOG_GPRS_MAC_UL_TBF_ESTABLISH_C), handle_mac_ul_tbf_est },
+	{ GSM(LOG_EGPRS_MAC_DL_ACKNACK_C), handle_mac_dl_acknack },
+	{ GSM(LOG_EGPRS_MAC_UL_ACKNACK_C), handle_mac_ul_acknack },
 	{ GSM(LOG_GPRS_MAC_DL_TBF_RELEASE_C), handle_mac_dl_tbf_rel },
 	{ GSM(LOG_GPRS_MAC_UL_TBF_RELEASE_C), handle_mac_ul_tbf_rel },
 	/* SM/GMM */

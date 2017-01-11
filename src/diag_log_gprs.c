@@ -212,6 +212,25 @@ static void handle_gmm_ota_msg(struct log_hdr *lh, struct msgb *msg)
 	printf("GMM-OTA-MESSAGE { FIXME }\n");
 }
 
+static void handle_ul_acknack_v2(struct log_hdr *lh, struct msgb *msg)
+{
+	struct gprs_rlc_ul_acknack_params_v2 *ula;
+	ula = (struct gprs_rlc_ul_acknack_params_v2 *) msgb_data(msg);
+
+	printf("RLC-UL-ACKNACK-V2 { tfi=%u, final_ack_ind=%u, start_seq_nr=%u, cs=%u, countdown_val=%u, va=%u, vs=%u, stall_ind=%u, rrb=%08x%08x }\n",
+		ula->ul_tfi, ula->final_ack_ind, ula->start_seq_nr, ula->coding_scheme, ula->countdown_val, ula->va, ula->vs,
+		ula->stall_ind, ula->rrb_high32, ula->rrb_low32);
+}
+
+static void handle_dl_acknack_v2(struct log_hdr *lh, struct msgb *msg)
+{
+	struct gprs_rlc_dl_acknack_params_v2 *dla;
+	dla = (struct gprs_rlc_dl_acknack_params_v2 *) msgb_data(msg);
+
+	printf("RLC-DL-ACKNACK-V2 { tfi=%u, final_ack_ind=%u, start_seq_nr=%u, vq=%u, cs=%u, rrb=%08x%08x }\n",
+		dla->dl_tfi, dla->final_ack_ind, dla->start_seq_nr, dla->vq, dla->coding_scheme, dla->rrb_high32, dla->rrb_low32);
+}
+
 static const struct diag_log_dispatch_tbl log_tbl[] = {
 	/* LLC */
 	{ GSM(LOG_GPRS_LLC_ME_INFO_C), handle_llc_me_info },		/* requested? */
@@ -226,6 +245,8 @@ static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ GSM(LOG_GPRS_RLC_DL_RELEASE_IND_C), handle_rlc_rel },
 	{ GSM(LOG_GPRS_RLC_UL_STATS_C), handle_rlc_ul_stats },
 	{ GSM(LOG_GPRS_RLC_DL_STATS_C), handle_rlc_dl_stats },
+	{ GSM(LOG_GPRS_RLC_UL_ACKNACK_PARAMS_VER2_C), handle_ul_acknack_v2 },
+	{ GSM(LOG_GPRS_RLC_DL_ACKNACK_PARAMS_VER2_C), handle_dl_acknack_v2 },
 	/* MAC */
 	{ GSM(LOG_GPRS_MAC_STATE_C), handle_mac_state },
 	{ GSM(LOG_GPRS_MAC_SIGNALLING_MESSAGE_C), handle_mac_sign_msg },

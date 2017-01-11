@@ -91,26 +91,26 @@ struct gprs_rlc_dl_stats {
 /* LOG_GPRS_RLC_UL_ACKNACK_PARAMS_VER2_C */
 struct gprs_rlc_ul_acknack_params_v2 {
 	uint8_t ul_tfi;
-	uint8_t fai;
-	uint8_t ssn;
-	uint8_t cs;
-	uint8_t cv;
+	uint8_t final_ack_ind;
+	uint8_t start_seq_nr;
+	uint8_t coding_scheme;
+	uint8_t countdown_val;
 	uint8_t va;
 	uint8_t vs;
-	uint8_t si;
-	uint32_t hu32;
-	uint32_t lu32;
+	uint8_t stall_ind;
+	uint32_t rrb_high32;
+	uint32_t rrb_low32;
 } __attribute__ ((packed));
 
 /* LOG_GPRS_RLC_DL_ACKNACK_PARAMS_VER2_C */
 struct gprs_rlc_dl_acknack_params_v2 {
 	uint8_t dl_tfi;
-	uint8_t fai;
-	uint8_t ssn;
+	uint8_t final_ack_ind;
+	uint8_t start_seq_nr;
 	uint8_t vq;
-	uint32_t hu32;
-	uint32_t lu32;
-	uint8_t cs;
+	uint32_t rrb_high32;
+	uint32_t rrb_low32;
+	uint8_t coding_scheme;
 } __attribute__ ((packed));
 
 /* LOG_GPRS_RLC_UL_RELEASE_IND_C + LOG_GPRS_RLC_DL_RELEASE_IND_C */

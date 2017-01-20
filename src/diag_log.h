@@ -22,3 +22,5 @@ void diag_log_enable_all_supported(struct diag_instance *di);
 /* functions for log configuration */
 struct msgb *gen_log_config_set_mask(uint32_t equip_id, uint32_t last_item);
 int log_config_set_mask_bit(struct msgb *msg, uint32_t bit_in);
+
+void diag_log_hdl_default(struct log_hdr *lh, struct msgb *msg);

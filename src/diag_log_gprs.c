@@ -22,6 +22,7 @@
 #include "protocol/diag_log_gsm.h"
 #include "protocol/diag_log_gprs_rlc.h"
 #include "protocol/diag_log_gprs_mac.h"
+#include "protocol/diag_log_gprs_l1.h"
 
 
 static void handle_grr_state_msg(struct log_hdr *lh, struct msgb *msg)
@@ -195,6 +196,16 @@ static void handle_rlc_dl_stats(struct log_hdr *lh, struct msgb *msg)
 		get_value_string(gprs_rlc_dl_state_vals, dls->rlc_dl_state));
 }
 
+static void handle_rlc_ul_header(struct log_hdr *lh, struct msgb *msg)
+{
+	struct gprs_rlc_ul_header *ulh;
+	ulh = (struct gprs_rlc_ul_header *) msgb_data(msg);
+
+	printf("RLC-UL-HEADER { type=%s, hdr=%s }\n",
+		get_value_string(gprs_rlc_hdr_type_vals, ulh->type),
+		osmo_hexdump(ulh->ul_hdr, sizeof(ulh->ul_hdr)));
+}
+
 static void handle_rlc_rel(struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_rlc_release_ind *rli;
@@ -217,9 +228,9 @@ static void handle_ul_acknack_v2(struct log_hdr *lh, struct msgb *msg)
 	struct gprs_rlc_ul_acknack_params_v2 *ula;
 	ula = (struct gprs_rlc_ul_acknack_params_v2 *) msgb_data(msg);
 
-	printf("RLC-UL-ACKNACK-V2 { tfi=%u, final_ack_ind=%u, start_seq_nr=%u, cs=%u, countdown_val=%u, va=%u, vs=%u, stall_ind=%u, rrb=%08x%08x }\n",
-		ula->ul_tfi, ula->final_ack_ind, ula->start_seq_nr, ula->coding_scheme, ula->countdown_val, ula->va, ula->vs,
-		ula->stall_ind, ula->rrb_high32, ula->rrb_low32);
+	printf("RLC-UL-ACKNACK-V2 { tfi=%u, final_ack_ind=%u, start_seq_nr=%u, cs=%s, countdown_val=%u, va=%u, vs=%u, stall_ind=%u, rrb=%08x%08x }\n",
+		ula->ul_tfi, ula->final_ack_ind, ula->start_seq_nr, get_value_string(gprs_coding_schemes, ula->coding_scheme),
+		ula->countdown_val, ula->va, ula->vs, ula->stall_ind, ula->rrb_high32, ula->rrb_low32);
 }
 
 static void handle_dl_acknack_v2(struct log_hdr *lh, struct msgb *msg)
@@ -227,8 +238,73 @@ static void handle_dl_acknack_v2(struct log_hdr *lh, struct msgb *msg)
 	struct gprs_rlc_dl_acknack_params_v2 *dla;
 	dla = (struct gprs_rlc_dl_acknack_params_v2 *) msgb_data(msg);
 
-	printf("RLC-DL-ACKNACK-V2 { tfi=%u, final_ack_ind=%u, start_seq_nr=%u, vq=%u, cs=%u, rrb=%08x%08x }\n",
-		dla->dl_tfi, dla->final_ack_ind, dla->start_seq_nr, dla->vq, dla->coding_scheme, dla->rrb_high32, dla->rrb_low32);
+	printf("RLC-DL-ACKNACK-V2 { tfi=%u, final_ack_ind=%u, start_seq_nr=%u, vq=%u, cs=%s, rrb=%08x%08x }\n",
+		dla->dl_tfi, dla->final_ack_ind, dla->start_seq_nr, dla->vq,
+		get_value_string(gprs_coding_schemes, dla->coding_scheme), dla->rrb_high32, dla->rrb_low32);
+}
+
+static void handle_tx_sched_res(struct log_hdr *lh, struct msgb *msg)
+{
+	struct gprs_tx_sched_res *tsr;
+	tsr = (struct gprs_tx_sched_res *) msgb_data(msg);
+	int i;
+
+	printf("GPRS-TX-SCHED-RES { fn=%u, num_msg_tx=%u, arfcm = [ %u, %u, %u, %u ], msg_info = [ ",
+		tsr->fn, tsr->num_msg_tx, tsr->arfcn[0], tsr->arfcn[1], tsr->arfcn[2], tsr->arfcn[3]);
+	for (i = 0; i < tsr->num_msg_tx; i++) {
+		printf("{ tn=%u, chan_type=%s, dyn_alloc=%u, power_idx=%d, ta=%u, cs=%u }",
+			tsr->msg_info[i].tn,
+			get_value_string(gprs_tx_ul_chans, tsr->msg_info[i].chan_type),
+			tsr->msg_info[i].dyn_alloc, tsr->msg_info[i].power_idx,
+			tsr->msg_info[i].ta, tsr->msg_info[i].cs);
+
+		if (i < tsr->num_msg_tx-1)
+			printf(", ");
+	}
+	printf(" ] }\n");
+}
+
+static void handle_gprs_power_control(struct log_hdr *lh, struct msgb *msg)
+{
+	struct gprs_power_control *gpc;
+	gpc = (struct gprs_power_control *) msgb_data(msg);
+
+	printf("GPRS-POWER-CONTROL { tx_channel=%u, tx_tn=%u, tx_pwr=%u, cs=%s, gamma_tn=%u, gamma_band=%u, "
+		"alpha=%u, derived_c=%u, pmax=%u }\n", gpc->tx_channel, gpc->tx_tn, gpc->tx_pwr,
+		get_value_string(gprs_coding_schemes, gpc->cs), gpc->gamma_tn, gpc->gamma_band,
+		gpc->alpha, gpc->derived_c, gpc->pmax);
+}
+
+static void handle_gprs_xfer_sum(struct log_hdr *lh, struct msgb *msg)
+{
+	struct gprs_xfer_sum *gxs;
+	gxs = (struct gprs_xfer_sum *) msgb_data(msg);
+
+	printf("GPRS-XFER-SUMMARY { band=%u, cur_alloc=%u, ul_ptcch_ts=%u, dl_ptcch_ts=%u, ta=%u, usf_granularity=%u, "
+		"ul_tn_bitmap=0x%02x, dl_tn_bitmap=0x%02x }\n", gxs->band_ind, gxs->current_alloc, gxs->ul_ptcch_ts,
+		gxs->dl_ptcch_ts, gxs->ta, gxs->usf_granularity, gxs->ul_bitmap_tn, gxs->dl_bitmap_tn);
+}
+
+static void handle_gprs_aif_sum(struct log_hdr *lh, struct msgb *msg)
+{
+	struct gprs_air_if_summary *gaifs;
+	gaifs = (struct gprs_air_if_summary *) msgb_data(msg);
+
+	printf("GPRS-AIR-IF-SUM { fn=%d, band=%u, dl_ts=%u, ul_ts=%u, rx_power=%d. ... }\n",
+		gaifs->fn, gaifs->band_ind, gaifs->dl_ts, gaifs->ul_ts, gaifs->rx_power);
+}
+
+static void handle_gprs_rx_msg_metrics_a_v2(struct log_hdr *lh, struct msgb *msg)
+{
+	struct gprs_rx_msg_metr_a_v2 *metr;
+	metr = (struct gprs_rx_msg_metr_a_v2 *) msgb_data(msg);
+
+	printf("GPRS-RX-METR-A-V2 { fn=%d, tn=%d, chan=%u, cs=%s, rx_qual=%u crc_passed = [ %u, %u, %u ], usf_match=%u, dl_tfi_match=%u, msg_len=%u, usf=%u, ... }\n",
+		metr->fn, metr->tn, metr->chan, get_value_string(gprs_coding_schemes, metr->cs),
+		metr->rx_qual,
+		metr->crc_passed, metr->egprs_msg1_crc_passed, metr->egprs_msg2_crc_passed,
+		metr->usf_match, metr->dl_tfi_match,
+		metr->msg_len, metr->usf);
 }
 
 static const struct diag_log_dispatch_tbl log_tbl[] = {
@@ -247,6 +323,8 @@ static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ GSM(LOG_GPRS_RLC_DL_STATS_C), handle_rlc_dl_stats },
 	{ GSM(LOG_GPRS_RLC_UL_ACKNACK_PARAMS_VER2_C), handle_ul_acknack_v2 },
 	{ GSM(LOG_GPRS_RLC_DL_ACKNACK_PARAMS_VER2_C), handle_dl_acknack_v2 },
+	{ GSM(LOG_EGPRS_RLC_UL_HEADER_C), handle_rlc_ul_header },
+	{ 0x5206, diag_log_hdl_default },
 	/* MAC */
 	{ GSM(LOG_GPRS_MAC_STATE_C), handle_mac_state },
 	{ GSM(LOG_GPRS_MAC_SIGNALLING_MESSAGE_C), handle_mac_sign_msg },
@@ -258,6 +336,34 @@ static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ GSM(LOG_GPRS_MAC_UL_TBF_RELEASE_C), handle_mac_ul_tbf_rel },
 	/* SM/GMM */
 	{ GSM(LOG_GPRS_SM_GMM_OTA_MESSAGE_C), handle_gmm_ota_msg },
+
+	/* Layer 1 */
+	{ 0x5230, diag_log_hdl_default },
+	{ GSM(LOG_GPRS_AIR_INTERFACE_SUMMARY_C), handle_gprs_aif_sum },
+	{ 0x5232, diag_log_hdl_default },
+	{ GSM(LOG_GPRS_POWER_CONTROL_C), handle_gprs_power_control },
+	{ GSM(LOG_GPRS_TRANSFER_SUMMARY_C), handle_gprs_xfer_sum },
+	{ GSM(LOG_GPRS_TX_SCHEDULED_RESULTS_C), handle_tx_sched_res },
+
+	{ GSM(LOG_GPRS_RECEIVE_MSG_METRICS_A_VER2_C), handle_gprs_rx_msg_metrics_a_v2 },
+	{ 0x524e, diag_log_hdl_default },
+	{ 0x524f, diag_log_hdl_default },
+	{ 0x5250, diag_log_hdl_default },
+
+	{ 0x51f4, diag_log_hdl_default },
+	{ 0x51f5, diag_log_hdl_default },
+	{ 0x51f6, diag_log_hdl_default },
+	{ 0x51f7, diag_log_hdl_default },
+
+	{ 0x50c8, diag_log_hdl_default },
+	{ 0x50c9, diag_log_hdl_default },
+
+	{ 0x508c, diag_log_hdl_default },
+	//{ 0x508d, diag_log_hdl_default }, hardware cmd
+	{ 0x508f, diag_log_hdl_default },
+
+	{ 0x5209, diag_log_hdl_default },
+	{ 0x5211, diag_log_hdl_default },
 };
 
 static __attribute__((constructor)) void on_dso_load_gprs(void)

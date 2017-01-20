@@ -182,3 +182,8 @@ void diag_log_handle(struct diag_instance *di, struct msgb *msg)
 	else
 		printf("%s\n", osmo_hexdump(lh->data, lh->len));
 }
+
+void diag_log_hdl_default(struct log_hdr *lh, struct msgb *msg)
+{
+	printf("%s\n", osmo_hexdump(lh->data, lh->len));
+}

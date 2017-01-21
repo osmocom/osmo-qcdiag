@@ -333,6 +333,18 @@ struct diag_gsm_l2_state {
 	uint8_t l2_event;
 } __attribute__ ((packed));
 
+enum diag_gsm_l2_chantype {
+	DIAG_L2_CHT_DCCH	= 0,
+	DIAG_L2_CHT_BCCH	= 1,
+	DIAG_L2_CHT_L2_RACH	= 2,
+	DIAG_L2_CHT_CCCH	= 3,
+	DIAG_L2_CHT_SACCH	= 4,
+	DIAG_L2_CHT_SDCCH	= 5,
+	DIAG_L2_CHT_FACCH_F	= 6,
+	DIAG_L2_CHT_FACCH_H	= 7,
+};
+const struct value_string diag_gsm_l2_chantype_vals[9];
+
 struct diag_gsm_l2_transm_status {
 	uint8_t sapi;
 	uint8_t channel_type;

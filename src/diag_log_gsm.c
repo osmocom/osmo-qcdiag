@@ -26,8 +26,9 @@ static void handle_rr_sig_msg(struct log_hdr *lh, struct msgb *msg)
 {
 	struct diag_gsm_rr_msg *rm = (struct diag_gsm_rr_msg *) msgb_data(msg);
 
-	printf("RR: %02x %02x %u: %s\n", rm->chan_type, rm->msg_type,
-		rm->length, osmo_hexdump(msgb_data(msg), rm->length));
+	printf("RR: %s %02x %u: %s\n",
+		get_value_string(diag_gsm_l2_chantype_vals, rm->chan_type & 0x7f),
+		rm->msg_type, rm->length, osmo_hexdump(msgb_data(msg), rm->length));
 }
 
 static void handle_rr_state_msg(struct log_hdr *lh, struct msgb *msg)
@@ -84,8 +85,10 @@ static void handle_l2_transm_status(struct log_hdr *lh, struct msgb *msg)
 {
 	struct diag_gsm_l2_transm_status *lts = (struct diag_gsm_l2_transm_status *) msgb_data(msg);
 
-	printf("L2-TRANSM-STATUS { sapi=%u, chan_type=%u, vs=%u, va=%u, vr=%u, retrans_ctr=%u, seq_err=%u, frame_type=%u, msg_entries=%u, seg_entries=%u }\n",
-		lts->sapi, lts->channel_type, lts->vs, lts->va, lts->vr, lts->retrans_ctr,
+	printf("L2-TRANSM-STATUS { sapi=%u, chan_type=%s, vs=%u, va=%u, vr=%u, retrans_ctr=%u, seq_err=%u, frame_type=%u, msg_entries=%u, seg_entries=%u }\n",
+		lts->sapi,
+		get_value_string(diag_gsm_l2_chantype_vals, lts->channel_type),
+		lts->vs, lts->va, lts->vr, lts->retrans_ctr,
 		lts->seq_err, lts->frame_type, lts->msg_entries, lts->seg_entries);
 }
 

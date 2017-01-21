@@ -127,6 +127,18 @@ const struct value_string diag_gsm_l2_event_vals[] = {
 	{ 0, NULL }
 };
 
+const struct value_string diag_gsm_l2_chantype_vals[] = {
+	{ DIAG_L2_CHT_DCCH,	"DCCH" },
+	{ DIAG_L2_CHT_BCCH,	"BCCH" },
+	{ DIAG_L2_CHT_L2_RACH,	"RACH" },
+	{ DIAG_L2_CHT_CCCH,	"CCCH" },
+	{ DIAG_L2_CHT_SACCH,	"SACCH" },
+	{ DIAG_L2_CHT_SDCCH,	"SDCCH" },
+	{ DIAG_L2_CHT_FACCH_F,	"FACCH/F" },
+	{ DIAG_L2_CHT_FACCH_H,	"FACCH/H" },
+	{ 0, NULL }
+};
+
 /* GSM_GPRS_LOG_PACKET_REQ_F */
 struct diag_gsm_log_packet_req {
 	uint16_t code;

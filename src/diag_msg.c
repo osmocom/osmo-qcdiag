@@ -102,7 +102,7 @@ static void diag_rx_ext_msg_f(struct diag_instance *di, struct msgb *msgb)
 		file, osmo_load16le(&msg->line_nr));
 
 	/* replace all '%s' with '%p', as %s obviously doesn't work */
-	for (char *cur = fmt; cur && (cur < fmt + strlen(fmt)); cur = strstr(fmt, "%s")) {
+	for (char *cur = strstr(fmt, "%s"); cur && (cur < fmt + strlen(fmt)); cur = strstr(fmt, "%s")) {
 		cur[1] = 'p';
 	}
 

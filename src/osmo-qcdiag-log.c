@@ -60,7 +60,7 @@ static void do_configure(struct diag_instance *di)
 	/* response: 3d 67 a8 81 d4 46 6d d9 00 */
 
 	/* enable|disable the event report */
-#if 0
+#if 1
 	diag_transceive_buf_ign(di, enable_evt_report, sizeof(enable_evt_report));
 #else
 	diag_transceive_buf_ign(di, disable_evt_report, sizeof(disable_evt_report));

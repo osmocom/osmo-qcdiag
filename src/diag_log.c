@@ -50,14 +50,6 @@ struct diag_log_config_set_mask {
 	uint8_t		data[0];
 } __attribute((packed));
 
-static inline unsigned int bytes_rqd_for_bit(unsigned int bit)
-{
-	if (bit % 8)
-		return bit/8 + 1;
-	else
-		return bit/8;
-}
-
 struct msgb *gen_log_config_set_mask(uint32_t equip_id, uint32_t last_item)
 {
 	struct msgb *msg = msgb_alloc(DIAG_MAX_REQ_SIZE, "Diag Tx");

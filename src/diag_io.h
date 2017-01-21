@@ -29,3 +29,12 @@ struct msgb *diag_subsys_transceive_msg(struct diag_instance *di, struct msgb *t
 void diag_transceive_msg_ign(struct diag_instance *di, struct msgb *tx);
 struct msgb *diag_transceive_buf(struct diag_instance *di, const uint8_t *data, size_t data_len);
 void diag_transceive_buf_ign(struct diag_instance *di, const uint8_t *data, size_t data_len);
+
+/* FIXME: this should be in libosmocore */
+static inline unsigned int bytes_rqd_for_bit(unsigned int bit)
+{
+	if (bit % 8)
+		return bit/8 + 1;
+	else
+		return bit/8;
+}

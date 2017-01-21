@@ -177,7 +177,7 @@ static void diag_rx_ext_msg_terse_f(struct diag_instance *di, struct msgb *msgb)
 }
 
 
-struct diag_cmd_dispatch_tbl cmd_tbl[] = {
+static const struct diag_cmd_dispatch_tbl cmd_tbl[] = {
 	{ DIAG_EXT_MSG_F, diag_rx_ext_msg_f },
 	{ DIAG_QSR_EXT_MSG_TERSE_F, diag_rx_ext_msg_terse_f },
 };

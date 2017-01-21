@@ -145,7 +145,6 @@ int main(int argc, char **argv)
 {
 	struct diag_instance di;
 	int i;
-	int rc;
 
 	if (argc < 2) {
 		printf("Invoke with %s PATH_TO_SERIAL\n",

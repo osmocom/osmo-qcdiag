@@ -9,3 +9,5 @@ int diag_dpl_get_if_desc(struct diag_instance *di, uint8_t iface_id);
 
 int diag_dpl_set_if_log(struct diag_instance *di, uint8_t iface_id,
 			struct dpl_iid iid, uint32_t link_type);
+
+int diag_dpl_get_sup_if(struct diag_instance *di);

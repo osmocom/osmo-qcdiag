@@ -81,10 +81,10 @@ int diag_msg_config_set_rt_mask(struct diag_instance *di, uint16_t ssid, uint32_
 /* handler for EXT MSG */
 static void diag_rx_ext_msg_f(struct diag_instance *di, struct msgb *msgb)
 {
-	const uint8_t *data = msgb_data(msgb);
+	uint8_t *data = msgb_data(msgb);
 	const size_t len = msgb_length(msgb);
-	const struct ext_log_msg *msg;
-	const char *file = NULL, *fmt;
+	struct ext_log_msg *msg;
+	char *file = NULL, *fmt;
 	unsigned int num_args;
 
 	if (len < sizeof(struct ext_log_msg)) {
@@ -94,7 +94,7 @@ static void diag_rx_ext_msg_f(struct diag_instance *di, struct msgb *msgb)
 
 	msg = (struct ext_log_msg *) data;
 	num_args = msg->hdr.num_args;
-	fmt = (const char *) msg->params + num_args*sizeof(msg->params[0]);
+	fmt = (char *) msg->params + num_args*sizeof(msg->params[0]);
 	file = fmt + strlen(fmt) + 1;
 
 	printf("MSG(%u|%u|%s:%u): ", osmo_load16le(&msg->subsys_id),

@@ -6,7 +6,7 @@
 #include "protocol/diag_log_gsm.h"
 #include "protocol/diag_log_wcdma.h"
 
-static const struct value_string rrc_states[] = {
+const struct value_string rrc_states[] = {
 	{ DIAG_UMTS_RRC_STATE_DISCONNECTED,	"DISCONNETED" },
 	{ DIAG_UMTS_RRC_STATE_CONNETING,	"CONNECTING" },
 	{ DIAG_UMTS_RRC_STATE_CELL_FACH,	"CELL_FACH" },
@@ -16,7 +16,7 @@ static const struct value_string rrc_states[] = {
 	{ 0, NULL }
 };
 
-static const struct value_string rrc_procedures[] = {
+const struct value_string rrc_procedures[] = {
 	{ DIAG_UMTS_RRC_PROC_CSP,	"Cell Selection" },
 	{ DIAG_UMTS_RRC_PROC_SIB,	"SIB Processing" },
 	{ DIAG_UMTS_RRC_PROC_PG2,	"Paging Type 2" },
@@ -50,7 +50,7 @@ static const struct value_string rrc_procedures[] = {
 	{ 0, NULL }
 };
 
-static const struct value_string rrc_fail_causes[] = {
+const struct value_string rrc_fail_causes[] = {
 	{ DIAG_UMTS_RRC_FAIL_CFG_UNSUP,		"Configuration Unsupported" },
 	{ DIAG_UMTS_RRC_FAIL_PHY_CHAN_FAIL,	"Physical Channel Failure" },
 	{ DIAG_UMTS_RRC_FAIL_INCOMP_SIM_RECONF,	"Incompatible Simultaneous Reconfig" },
@@ -63,7 +63,7 @@ static const struct value_string rrc_fail_causes[] = {
 	{ 0, NULL }
 };
 
-static const struct value_string rrc_prot_errs[] = {
+const struct value_string rrc_prot_errs[] = {
 	{ DIAG_UMTS_RRC_PERR_ASN1_ENC_ERR,	"ASN.1 violation / encoding error" },
 	{ DIAG_UMTS_RRC_PERR_BAD_MSG_TYPE,	"Not existing or not implemented message type" },
 	{ DIAG_UMTS_RRC_PERR_IMCOMP_RX_STATE,	"Message incompatible with Rx state" },
@@ -73,7 +73,7 @@ static const struct value_string rrc_prot_errs[] = {
 	{ 0, NULL }
 };
 
-static const struct value_string rrc_chan_types[] = {
+const struct value_string rrc_chan_types[] = {
 	{ DIAG_UMTS_RRC_CHT_UL_CCCH,	"CCCH(Uplink)" },
 	{ DIAG_UMTS_RRC_CHT_UL_DCCH,	"DCCH(Uplink)" },
 	{ DIAG_UMTS_RRC_CHT_DL_CCCH,	"CCCH(Downlink)" },

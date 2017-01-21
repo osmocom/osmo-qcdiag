@@ -325,7 +325,7 @@ enum diag_gsm_l2_event {
 	DIAG_L2_EV_UA_SENT,
 	DIAG_L2_EV_FORCED_SUSPEND_REQ,
 };
-const struct value_string diag_gsm_l2_event_vals[27];
+const struct value_string diag_gsm_l2_event_vals[28];
 
 struct diag_gsm_l2_state {
 	uint8_t sapi;

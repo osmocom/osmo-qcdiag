@@ -307,6 +307,29 @@ static void handle_gprs_rx_msg_metrics_a_v2(struct log_hdr *lh, struct msgb *msg
 		metr->msg_len, metr->usf);
 }
 
+static inline uint32_t round_next_octet(uint32_t num_bits)
+{
+	uint32_t num_bytes = num_bits / 8;
+	if (num_bits % 8)
+		num_bytes++;
+	return num_bytes;
+}
+
+static void handle_egprs_rlc_epdan(struct log_hdr *lh, struct msgb *msg)
+{
+	struct diag_egprs_rlc_epdan *epd = (struct diag_egprs_rlc_epdan *) msgb_data(msg);
+
+	printf("EGPRS-RLC-EPDAN { tfi=%u, final_ack=%u, begin_of_win=%u, end_of_win=%u, esp=%u, starting_color_code=%u, gmsk=%u, psk=%u, ssn=%u, crrb_num_bits=%u, crrb=%s, ",
+		epd->tfi, epd->final_ack_ind, epd->begin_of_window, epd->end_of_window,
+		epd->esp, epd->starting_color_code, epd->gmsk_valid, epd->psk_valid,
+		epd->ssn, epd->crrb_num_bits,
+		osmo_hexdump_nospc(epd->crrb, round_next_octet(epd->crrb_num_bits)));
+	printf("urrb_num_bits=%u, urrb=%s, gmsk_bep=%u, psk_bep=%u, c_value=%u }\n",
+		epd->urrb_num_bits,
+		osmo_hexdump_nospc(epd->urrb, round_next_octet(epd->urrb_num_bits)),
+		epd->gmsk_bep, epd->psk_bep, epd->c_value);
+}
+
 static const struct diag_log_dispatch_tbl log_tbl[] = {
 	/* LLC */
 	{ GSM(LOG_GPRS_LLC_ME_INFO_C), handle_llc_me_info },		/* requested? */
@@ -324,6 +347,7 @@ static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ GSM(LOG_GPRS_RLC_UL_ACKNACK_PARAMS_VER2_C), handle_ul_acknack_v2 },
 	{ GSM(LOG_GPRS_RLC_DL_ACKNACK_PARAMS_VER2_C), handle_dl_acknack_v2 },
 	{ GSM(LOG_EGPRS_RLC_UL_HEADER_C), handle_rlc_ul_header },
+	{ GSM(LOG_EGPRS_RLC_EPDAN_C), handle_egprs_rlc_epdan },
 	{ 0x5206, diag_log_hdl_default },
 	/* MAC */
 	{ GSM(LOG_GPRS_MAC_STATE_C), handle_mac_state },
@@ -355,15 +379,10 @@ static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ 0x51f6, diag_log_hdl_default },
 	{ 0x51f7, diag_log_hdl_default },
 
-	{ 0x50c8, diag_log_hdl_default },
-	{ 0x50c9, diag_log_hdl_default },
-
-	{ 0x508c, diag_log_hdl_default },
 	//{ 0x508d, diag_log_hdl_default }, hardware cmd
 	{ 0x508f, diag_log_hdl_default },
 
 	{ 0x5209, diag_log_hdl_default },
-	{ 0x5211, diag_log_hdl_default },
 };
 
 static __attribute__((constructor)) void on_dso_load_gprs(void)

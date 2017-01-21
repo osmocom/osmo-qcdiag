@@ -11,11 +11,17 @@ enum diag_log_code_gsm {
 	LOG_GSM_AFC_ADJUST_C				= 0x7c,
 	LOG_GSM_MON_BURST_C				= 0x82,
 	LOG_GSM_BCCH_BURST_METRICS_C			= 0x85,
+	LOG_GSM_MDSP_CMD_C				= 0x8c,
 	LOG_GSM_GL1_HW_CMD_C				= 0x8d,
-	LOG_GSM_RR_STATE_C				= 0x12c,
 	LOG_GSM_RR_SIGNALING_MESSAGE_C			= 0x12f,
 
+	/* Layer2 (LAPDm) */
+	LOG_GSM_L2_STATE_C				= 200,
+	LOG_GSM_L2_TRANSMISSION_STATUS_C		= 201,
+	LOG_GSM_L2_OUTSTANDING_FRAME_C			= 202,
 
+
+	LOG_GSM_RR_STATE_C				= 300,
 	//= 303,
 	LOG_GSM_RR_CONTROL_CHANNEL_PARAMS_C		= 306,
 
@@ -249,6 +255,95 @@ struct diag_gprs_llc_xid_info {
 	struct diag_xid_tuple16 mu;
 	struct diag_xid_tuple8 kd;
 	struct diag_xid_tuple8 ku;
+} __attribute__ ((packed));
+
+struct diag_mdsp_log_cmd {
+	uint32_t fn;
+	uint16_t cnt;
+	uint16_t seq;
+	uint16_t cmd;
+	uint16_t params[5];
+} __attribute__ ((packed));
+
+struct diag_mdsp_log_cmds {
+	uint32_t num_cmds;
+	struct diag_mdsp_log_cmd cmds[16];
+} __attribute__ ((packed));
+
+
+enum diag_gsm_sapi0_state {
+	DIAG_SAPI0_ST_NULL,
+	DIAG_SAPI0_ST_CON_PEND,
+	DIAG_SAPI0_ST_IDLE,
+	DIAG_SAPI0_ST_EST_PEND,
+	DIAG_SAPI0_ST_REL_PEND,
+	DIAG_SAPI0_ST_LINK_EST,
+	DIAG_SAPI0_ST_TMR_RECOV,
+	DIAG_SAPI0_ST_LINK_SUSP,
+	DIAG_SAPI0_ST_UA_PEND,
+};
+const struct value_string diag_gsm_l2_sapi0_st_vals[10];
+
+enum diag_gsm_sapi3_state {
+	DIAG_SAPI3_ST_NULL,
+	DIAG_SAPI3_ST_CON_PEND,
+	DIAG_SAPI3_ST_IDLE,
+	DIAG_SAPI3_ST_EST_PEND,
+	DIAG_SAPI3_ST_REL_PEND,
+	DIAG_SAPI3_ST_LINK_EST,
+	DIAG_SAPI3_ST_TMR_RECOV,
+	DIAG_SAPI3_ST_UA_PEND,
+};
+const struct value_string diag_gsm_l2_sapi3_st_vals[9];
+
+enum diag_gsm_l2_event {
+	DIAG_L2_EV_NO_EVENT,
+	DIAG_L2_EV_CONNECT_RECEIVED,
+	DIAG_L2_EV_ESTABLISH_REQUEST,
+	DIAG_L2_EV_RELEASE_REQUEST,
+	DIAG_L2_EV_SUSPEND_REQUEST,
+	DIAG_L2_EV_RESUME_REQUEST,
+	DIAG_L2_EV_RECONNECT_REQUEST,
+	DIAG_L2_EV_DATA_REQUEST,
+	DIAG_L2_EV_MDL_RELEASE_REQUEST,
+	DIAG_L2_EV_UA_RECEIVED,
+	DIAG_L2_EV_DM_RECEIVED,
+	DIAG_L2_EV_DISC_RECEIVED,
+	DIAG_L2_EV_SABM_RECEIVED,
+	DIAG_L2_EV_I_RECEIVED,
+	DIAG_L2_EV_UI_RECEIVED,
+	DIAG_L2_EV_RR_RECEIVED,
+	DIAG_L2_EV_REJ_RECEIVED,
+	DIAG_L2_EV_T200_TIMEOUT,
+	DIAG_L2_EV_CONTENTION_FAILED,
+	DIAG_L2_EV_ABORT_ESTABLISHMENT,
+	DIAG_L2_EV_LINK_ESTABLISHED,
+	DIAG_L2_EV_RELEASE_CONFIRMED,
+	DIAG_L2_EV_CLEAR_RECOVERY_CONDITION,
+	DIAG_L2_EV_OPTIONAL_SEND,
+	DIAG_L2_EV_RESET_L2,
+	DIAG_L2_EV_UA_SENT,
+	DIAG_L2_EV_FORCED_SUSPEND_REQ,
+};
+const struct value_string diag_gsm_l2_event_vals[27];
+
+struct diag_gsm_l2_state {
+	uint8_t sapi;
+	uint8_t l2_state;
+	uint8_t l2_event;
+} __attribute__ ((packed));
+
+struct diag_gsm_l2_transm_status {
+	uint8_t sapi;
+	uint8_t channel_type;
+	uint8_t vs;
+	uint8_t va;
+	uint8_t vr;
+	uint8_t retrans_ctr;
+	uint8_t seq_err;
+	uint8_t frame_type;
+	uint8_t msg_entries;
+	uint8_t seg_entries;
 } __attribute__ ((packed));
 
 struct msgb *diag_gsm_make_log_pack_req(uint16_t log_code, uint8_t zero_stats, uint8_t addl_info);

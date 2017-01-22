@@ -18,16 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import csv
-
-def export_value_str(name, vals, flavor='osmocom'):
-    if flavor == 'osmocom':
-        print("const struct value_string %s[] = {" % name);
-    elif flavor == 'wireshark':
-        print("const value_string %s[] = {" % name);
-    for v in sorted(vals.iterkeys(), key=int):
-        print("\t{ %d, \"%s\" }," % (int(v), vals[v]));
-    print("\t{ 0, NULL }")
-    print("};");
+from value_string import export_value_str
 
 class QxdmDb(object):
     file_fields = {

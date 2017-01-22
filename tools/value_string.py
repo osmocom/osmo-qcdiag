@@ -17,13 +17,28 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+class ValueStringWriter(object):
+    def __init__(self, flavor='osmocom', weak=False, includes=[]):
+        self.flavor = flavor
+        self.weak = weak
+        self.includes = includes
 
-def export_value_str(name, vals, flavor='osmocom', sort_key=int):
-    if flavor == 'osmocom':
-        print("const struct value_string %s[] = {" % name);
-    elif flavor == 'wireshark':
-        print("const value_string %s[] = {" % name);
-    for v in sorted(vals.iterkeys(), key=sort_key):
-        print("\t{ %s, \"%s\" }," % (v, vals[v]));
-    print("\t{ 0, NULL }")
-    print("};");
+    def export_value_str(self, name, vals, sort_key=int):
+        if self.weak:
+            print("__attribute__((weak))")
+        if self.flavor == 'osmocom':
+            print("const struct value_string %s[] = {" % name);
+        elif self.flavor == 'wireshark':
+            print("const value_string %s[] = {" % name);
+        for v in sorted(vals.iterkeys(), key=sort_key):
+            print("\t{ %s, \"%s\" }," % (v, vals[v]));
+        print("\t{ 0, NULL }")
+        print("};");
+
+    def export_header(self):
+        print("/* GENERATED FILE, DO NOT EDIT */")
+        if self.flavor == 'osmocom':
+            print("#include <osmocom/core/utils.h>")
+        for i in self.includes:
+            print('#include "%s"' % i)
+        print("")

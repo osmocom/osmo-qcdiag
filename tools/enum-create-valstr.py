@@ -20,7 +20,7 @@
 from optparse import OptionParser
 import pprint
 from pycparser import c_parser, c_ast, parse_file
-from value_string import export_value_str
+from value_string import *
 
 class EnumValStrVisitor(c_ast.NodeVisitor):
     "Generate a 'struct value_string' from an enum"
@@ -30,7 +30,7 @@ class EnumValStrVisitor(c_ast.NodeVisitor):
         vdict = {}
         for val in elist.enumerators:
             vdict[val.name] = val.name
-        export_value_str(name, vdict, sort_key=None)
+        wr.export_value_str(name, vdict, sort_key=None)
 
 class EnumValuePrinter(c_ast.NodeVisitor):
     def visit_Enum(self, node):
@@ -49,10 +49,18 @@ class EnumValuePrinter(c_ast.NodeVisitor):
 
 
 parser = OptionParser()
+parser.add_option("-f", "--flavor", dest="flavor", default='osmocom',
+                  help="Flavor of generated C (osmocom, wireshark)")
+parser.add_option("-w", "--weak-symbol", dest="weak", default=True,
+                  help="Generate weak symbols")
 (options, args) = parser.parse_args()
 filename = args[0]
 
 ast = parse_file(filename, use_cpp=True)
+
+wr = ValueStringWriter(flavor=options.flavor, weak=options.weak,
+        includes=[filename])
+wr.export_header()
 
 v = EnumValStrVisitor()
 #v = EnumValuePrinter()

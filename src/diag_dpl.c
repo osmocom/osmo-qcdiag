@@ -97,11 +97,12 @@ int diag_dpl_set_if_log(struct diag_instance *di, uint8_t iface_id,
 	struct msgb *msg = msgb_alloc_diag();
 	struct dpl_set_if_log_req *silr;
 	struct msgb *rx;
+	int i;
 
 	silr = (struct dpl_set_if_log_req *) msgb_put(msg, sizeof(*silr));
 	silr->iface_id = iface_id;
 	silr->num_log_flags = 0;
-	for (int i = 0; i < 1; i++) {
+	for (i = 0; i < 1; i++) {
 		msgb_put(msg, sizeof(silr->log_flags[0]));
 		silr->num_log_flags++;
 		iid.link_instance = i;

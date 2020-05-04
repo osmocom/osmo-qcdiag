@@ -23,6 +23,8 @@ enum diag_umts_rrc_chtype {
 	DIAG_UMTS_RRC_CHT_DL_BCCH_BCH	= 4,
 	DIAG_UMTS_RRC_CHT_DL_BCCH_FACH	= 5,
 	DIAG_UMTS_RRC_CHT_DL_PCCH	= 6,
+	DIAG_UMTS_RRC_CHT_EXTENSION_SIB = 9,
+	DIAG_UMTS_RRC_CHT_SIB_CONTAINER = 10,
 };
 
 enum diag_umts_rrc_state {

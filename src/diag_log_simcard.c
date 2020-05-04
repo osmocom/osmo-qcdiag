@@ -27,13 +27,13 @@
 #include "protocol/diagcmd.h"
 #include "protocol/diag_log_1x.h"
 
-static void handle_uim_data(struct log_hdr *lh, struct msgb *msg)
+static void handle_uim_data(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct diag_log_uim_msg *uim = (struct diag_log_uim_msg *) msgb_data(msg);
 	printf("UIM_DATA { %s }\n", msgb_hexdump(msg));
 }
 
-static void handle_uim_ds_data(struct log_hdr *lh, struct msgb *msg)
+static void handle_uim_ds_data(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	printf("UIM_DS_DATA {}\n");
 }
@@ -43,8 +43,9 @@ static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ L1X(LOG_UIM_DATA_C), handle_uim_data },
 	{ L1X(LOG_UIM_DS_DATA_C), handle_uim_ds_data },
 };
-
+#if 0
 static __attribute__((constructor)) void on_dso_load_gsm(void)
 {
 	diag_log_reg_dispatch(log_tbl, ARRAY_SIZE(log_tbl));
 }
+#endif

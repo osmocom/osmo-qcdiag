@@ -26,7 +26,7 @@
 
 /* A small wrapper around libqmi-glib to give us a human-readable string
  * representation of QMI messages that we receive from DIAG */
-static int dump_qmi_msg(const uint8_t *data, unsigned int len)
+static int dump_qmi_msg(struct diag_instance *di, const uint8_t *data, unsigned int len)
 {
 	GByteArray *buffer;
 	GError *error = NULL;
@@ -49,9 +49,9 @@ static int dump_qmi_msg(const uint8_t *data, unsigned int len)
 	return 0;
 }
 
-static void handle_qmi_msg(struct log_hdr *lh, struct msgb *msg)
+static void handle_qmi_msg(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
-	dump_qmi_msg(lh->data, lh->len);
+	dump_qmi_msg(di, lh->data, lh->len);
 }
 
 #define CORE(x)	(0x1000 + x)
@@ -97,7 +97,9 @@ static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ LOG_QMI_PORT_TX(15), handle_qmi_msg },
 };
 
+#if 0
 static __attribute__((constructor)) void on_dso_load_qmi(void)
 {
 	diag_log_reg_dispatch(log_tbl, ARRAY_SIZE(log_tbl));
 }
+#endif

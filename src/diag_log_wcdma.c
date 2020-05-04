@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include <osmocom/core/gsmtap.h>
+#include <osmocom/core/gsmtap_util.h>
 #include <osmocom/core/utils.h>
 
 #include "diag_log.h"
@@ -81,21 +83,69 @@ const struct value_string rrc_chan_types[] = {
 	{ DIAG_UMTS_RRC_CHT_DL_BCCH_BCH,"BCCH/BCH" },
 	{ DIAG_UMTS_RRC_CHT_DL_BCCH_FACH, "BCCH/FACH" },
 	{ DIAG_UMTS_RRC_CHT_DL_PCCH,	"PCCH" },
+	{ DIAG_UMTS_RRC_CHT_EXTENSION_SIB,	 "unknown" },
+	{ DIAG_UMTS_RRC_CHT_SIB_CONTAINER,	"unknown" },
 	{ 0, NULL }
 };
 
-static void handle_rrc_sig_msg(struct log_hdr *lh, struct msgb *msg)
+
+struct wcdma_cell_id {
+	uint32_t ul_arfcn;
+	uint32_t dl_arfcn;
+	uint32_t cell_id;
+};
+
+static void handle_rrc_sig_msg(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
+	uint32_t ctype = 0;
+	uint16_t arfcn = 0;
 	struct diag_umts_rrc_msg *rrm = (struct diag_umts_rrc_msg *) msgb_data(msg);
 
-	printf("RRC: %s %u %u: %s\n",
-		get_value_string(rrc_chan_types, rrm->chan_type),
-		rrm->rb_id, rrm->length,
-		osmo_hexdump(msgb_data(msg), rrm->length));
+//	printf("RRC: %s %u %u: %s\n",
+//		get_value_string(rrc_chan_types, rrm->chan_type),
+//		rrm->rb_id, rrm->length,
+//		osmo_hexdump(msgb_data(msg), rrm->length));
+
+	switch(rrm->chan_type){
+		case 254:
+		case 255:
+		case DIAG_UMTS_RRC_CHT_EXTENSION_SIB:
+		case DIAG_UMTS_RRC_CHT_SIB_CONTAINER:
+			return;
+		case DIAG_UMTS_RRC_CHT_UL_CCCH: ctype =GSMTAP_RRC_SUB_UL_CCCH_Message; break;
+		case DIAG_UMTS_RRC_CHT_UL_DCCH: ctype =GSMTAP_RRC_SUB_UL_DCCH_Message; break;
+		case DIAG_UMTS_RRC_CHT_DL_CCCH: ctype =GSMTAP_RRC_SUB_DL_CCCH_Message; break;
+		case DIAG_UMTS_RRC_CHT_DL_DCCH: ctype =GSMTAP_RRC_SUB_DL_DCCH_Message; break;
+		case DIAG_UMTS_RRC_CHT_DL_BCCH_BCH: ctype =GSMTAP_RRC_SUB_BCCH_BCH_Message; break;
+		case DIAG_UMTS_RRC_CHT_DL_BCCH_FACH: ctype =GSMTAP_RRC_SUB_BCCH_FACH_Message; break;
+		case DIAG_UMTS_RRC_CHT_DL_PCCH: ctype =GSMTAP_RRC_SUB_PCCH_Message; break;
+		default:
+			printf("Unhandled RRC: %s %u %u: %s\n",
+				get_value_string(rrc_chan_types, rrm->chan_type),
+				rrm->rb_id, rrm->length,
+				osmo_hexdump(msgb_data(msg), rrm->length));
+			return;
+	}
+
+	arfcn = rrm->chan_type < DIAG_UMTS_RRC_CHT_DL_CCCH ? di->umts_arfcn_ul | GSMTAP_ARFCN_F_UPLINK: di->umts_arfcn_dl;
+
+	if (di->gsmtap && di->flags & DIAG_INST_F_GSMTAP_DECODED) {
+		gsmtap_send_ex(di->gsmtap, GSMTAP_TYPE_UMTS_RRC, arfcn, 0, ctype, 0, 0, 0, 0, rrm->msg,rrm->length);
+	}
 }
+
+static void handle_cell_id(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
+{
+	struct wcdma_cell_id *rrm = (struct wcdma_cell_id *) msgb_data(msg);
+
+	di->umts_arfcn_dl =rrm->dl_arfcn;
+	di->umts_arfcn_ul =rrm->ul_arfcn;
+}
+
 
 static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ WCDMA(LOG_WCDMA_SIGNALING_MSG_C), handle_rrc_sig_msg },
+	{ WCDMA(LOG_WCDMA_CELL_ID_C), handle_cell_id },
 };
 
 static __attribute__((constructor)) void on_dso_load_umts(void)

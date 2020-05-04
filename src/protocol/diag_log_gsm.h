@@ -7,6 +7,7 @@
 enum diag_log_code_gsm {
 	LOG_GSM_POWER_SCAN_C				= 0x64,
 	LOG_GSM_FCCH_DECODE_C				= 0x65,
+	LOG_GSM_SCH_DECODE_C				= 0x66,
 	LOG_GSM_NCELL_ACQ_C				= 0x75,
 	LOG_GSM_AFC_ADJUST_C				= 0x7c,
 	LOG_GSM_MON_BURST_C				= 0x82,
@@ -24,6 +25,7 @@ enum diag_log_code_gsm {
 	LOG_GSM_RR_STATE_C				= 300,
 	//= 303,
 	LOG_GSM_RR_CONTROL_CHANNEL_PARAMS_C		= 306,
+	LOG_GSM_RR_CELL_INFO_C					= 308,
 
 	LOG_GPRS_INDICATORS_C				= 500,
 	LOG_GPRS_GENERAL_PARAMS_C			= 501,

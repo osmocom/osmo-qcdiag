@@ -152,8 +152,9 @@ static void diag_rx_event_report_f(struct diag_instance *di, struct msgb *msg)
 static const struct diag_cmd_dispatch_tbl cmd_tbl[] = {
 	{ DIAG_EVENT_REPORT_F, diag_rx_event_report_f },
 };
-
+#if 0
 static __attribute__((constructor)) void on_dso_load_event(void)
 {
 	diag_cmd_reg_dispatch(cmd_tbl, ARRAY_SIZE(cmd_tbl));
 }
+#endif

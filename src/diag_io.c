@@ -94,17 +94,28 @@ int diag_transmit_buf(struct diag_instance *di, const uint8_t *data, size_t data
 
 struct msgb *diag_read_msg(struct diag_instance *di)
 {
-	uint8_t buf[DIAG_MAX_HDLC_BUF_SIZE];
+	static uint8_t buf[DIAG_MAX_HDLC_BUF_SIZE];
 	struct diag_hdlc_decode_type hdlc_decode;
 	struct msgb *msg;
-	int rc;
+	int rc = 0;
+	static int buf_items_left = 0;
 
+//	printf("--\nRx dump pre: %s\n", osmo_hexdump(buf, buf_items_left));
 	/* read raw data into buffer */
-	rc = read(di->fd, buf, sizeof(buf));
-	if (rc <= 0) {
-		fprintf(stderr, "Short read!\n");
-		exit(1);
+
+	if(!buf_items_left) {
+		rc = read(di->fd, buf+buf_items_left, sizeof(buf)-buf_items_left);
+		if (rc <= 0) {
+			fprintf(stderr, "Short read! %d -> exiting...\n", rc);
+			exit(1);
+		}
 	}
+
+	unsigned int read_total = rc + buf_items_left;
+	unsigned int read_current = rc;
+
+//	printf("1 Rx dump total: %s\n", osmo_hexdump(buf, read_total));
+	fflush(stdout);
 
 	if (!di->rx.msg) {
 		di->rx.msg = msgb_alloc(DIAG_MAX_REQ_SIZE, "DIAG Rx");
@@ -116,11 +127,26 @@ struct msgb *diag_read_msg(struct diag_instance *di)
 	hdlc_decode.dest_ptr = msg->tail;
 	hdlc_decode.dest_size = msgb_tailroom(msg);
 	hdlc_decode.src_ptr = buf;
-	hdlc_decode.src_size = rc;
+	hdlc_decode.src_size = read_total;
 	hdlc_decode.src_idx = 0;
 	hdlc_decode.dest_idx = 0;
 
+
 	rc = diag_hdlc_decode(&hdlc_decode);
+
+
+	int consumed = hdlc_decode.dest_idx;
+	int current_remaining_in_buf = read_total-consumed;
+//	printf("rx %d->%d, rem %d %u \n", read_total, consumed, current_remaining_in_buf, hdlc_decode.src_idx-hdlc_decode.dest_idx);
+
+	if(hdlc_decode.dest_idx < read_total) {
+		memmove(buf, buf+consumed, current_remaining_in_buf);
+		buf_items_left = current_remaining_in_buf;
+	} else
+		buf_items_left = 0;
+
+//	printf("2 Rx dump total: %s\n", osmo_hexdump(buf, buf_items_left));
+
 
 	if (msgb_length(msg) + hdlc_decode.dest_idx > DIAG_MAX_REQ_SIZE) {
 		fprintf(stderr, "Dropping packet. pkt_size: %d, max: %d\n",
@@ -142,8 +168,9 @@ struct msgb *diag_read_msg(struct diag_instance *di)
 		rc = crc_check(msgb_data(msg), msgb_length(msg));
 		if (rc) {
 			fprintf(stderr, "Bad CRC, dropping packet\n");
-			//msgb_free(msg);
-			//return NULL;
+			printf("Rx broken crc: %s\n", msgb_hexdump(msg));
+			msgb_free(msg);
+			return NULL;
 		}
 		msgb_get(msg, HDLC_FOOTER_LEN);
 

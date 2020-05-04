@@ -51,8 +51,7 @@ int diag_process_msg(struct diag_instance *di, struct msgb *msg)
 	uint8_t cmd = msg->l2h[0];
 
 	if (di->gsmtap) {
-		gsmtap_send_ex(di->gsmtap, GSMTAP_TYPE_QC_DIAG, 0, 0, 0,
-				0, 0, 0, 0, msgb_l2(msg), msgb_l2len(msg));
+//		process(di, msgb_l2(msg), msgb_l2len(msg));
 	}
 
 	switch (cmd) {
@@ -75,6 +74,8 @@ int diag_process_msg(struct diag_instance *di, struct msgb *msg)
 			msgb_free(msg);
 			return 1;
 		} else {
+				/* swallow config messages */
+				if(msg->l2h[0] != DIAG_LOG_CONFIG_F && msg->l2h[0] != DIAG_EXT_MSG_CONFIG_F)
 			printf("Got %d bytes data of unknown payload type 0x%02x: %s\n",
 				msgb_length(msg), msg->l2h[0],
 				osmo_hexdump(msgb_data(msg), msgb_length(msg)));

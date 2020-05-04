@@ -38,7 +38,15 @@ struct diag_set_rt_mask_req {
 	uint32_t runtime_mask[1];
 };
 
+struct diag_set_all_rt_mask_req {
+	uint8_t cmd_code;
+	uint8_t sub_cmd;
+	uint16_t _pad;
+	uint32_t runtime_mask;
+};
+
 #define MSG_EXT_SUBCMD_SET_RT_MASK	4
+#define MSG_EXT_SUBCMD_SET_ALL_RT_MASK	5
 
 struct msgb *gen_msg_config_set_rt_mask(uint16_t ssid, uint32_t runtime_mask)
 {
@@ -56,6 +64,40 @@ struct msgb *gen_msg_config_set_rt_mask(uint16_t ssid, uint32_t runtime_mask)
 	return msg;
 }
 
+struct msgb *gen_msg_config_set_all_rt_mask(uint32_t runtime_mask)
+{
+	struct msgb *msg = msgb_alloc(DIAG_MAX_REQ_SIZE, "Diag Msg Config");
+	struct diag_set_all_rt_mask_req *dsrmr;
+
+	msg->l2h = msgb_put(msg, sizeof(*dsrmr));
+	dsrmr = (struct diag_set_all_rt_mask_req *) msgb_l2(msg);
+	dsrmr->cmd_code = DIAG_EXT_MSG_CONFIG_F;
+	dsrmr->sub_cmd = MSG_EXT_SUBCMD_SET_ALL_RT_MASK;
+	osmo_store32le(runtime_mask, &dsrmr->runtime_mask);
+
+	return msg;
+}
+
+int diag_msg_config_set_all_rt_mask(struct diag_instance *di, uint32_t runtime_mask)
+{
+	struct msgb *msg = gen_msg_config_set_all_rt_mask(runtime_mask);
+	struct msgb *rx;
+	struct diag_set_all_rt_mask_req *res;
+	int rc = 0;
+
+	rx = diag_transceive_msg(di, msg);
+	res = (struct diag_set_all_rt_mask_req *) (msgb_l2(rx));
+	if ((rx->l2h[0] != DIAG_EXT_MSG_CONFIG_F) || res->cmd_code != DIAG_EXT_MSG_CONFIG_F ||
+	    res->sub_cmd != MSG_EXT_SUBCMD_SET_ALL_RT_MASK ||
+	    osmo_load32le(&res->runtime_mask) != runtime_mask) {
+		fprintf(stderr, "Error setting all RT mask\n");
+		rc = -1;
+	}
+	msgb_free(rx);
+
+	return rc;
+}
+
 int diag_msg_config_set_rt_mask(struct diag_instance *di, uint16_t ssid, uint32_t runtime_mask)
 {
 	struct msgb *msg = gen_msg_config_set_rt_mask(ssid, runtime_mask);
@@ -64,8 +106,8 @@ int diag_msg_config_set_rt_mask(struct diag_instance *di, uint16_t ssid, uint32_
 	int rc = 0;
 
 	rx = diag_transceive_msg(di, msg);
-	res = (struct diag_set_rt_mask_req *) (msgb_l2(msg)+1);
-	if ((rx->l2h[0] != DIAG_EXT_MSG_CONFIG_F) || res->cmd_code != MSG_EXT_SUBCMD_SET_RT_MASK ||
+	res = (struct diag_set_rt_mask_req *) (msgb_l2(rx));
+	if ((rx->l2h[0] != DIAG_EXT_MSG_CONFIG_F) || res->cmd_code != DIAG_EXT_MSG_CONFIG_F ||
 	    res->sub_cmd != MSG_EXT_SUBCMD_SET_RT_MASK ||
 	    osmo_load16le(&res->ssid_start) != ssid ||
 	    osmo_load16le(&res->ssid_end) != ssid ||
@@ -183,7 +225,9 @@ static const struct diag_cmd_dispatch_tbl cmd_tbl[] = {
 	{ DIAG_QSR_EXT_MSG_TERSE_F, diag_rx_ext_msg_terse_f },
 };
 
+#if 0
 static __attribute__((constructor)) void on_dso_load_msg(void)
 {
 	diag_cmd_reg_dispatch(cmd_tbl, ARRAY_SIZE(cmd_tbl));
 }
+#endif

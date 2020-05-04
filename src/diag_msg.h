@@ -6,3 +6,5 @@
 
 struct msgb *gen_msg_config_set_rt_mask(uint16_t ssid, uint32_t runtime_mask);
 int diag_msg_config_set_rt_mask(struct diag_instance *di, uint16_t ssid, uint32_t runtime_mask);
+int diag_msg_config_set_all_rt_mask(struct diag_instance *di, uint32_t runtime_mask);
+

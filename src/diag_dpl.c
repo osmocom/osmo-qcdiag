@@ -120,7 +120,7 @@ int diag_dpl_set_if_log(struct diag_instance *di, uint8_t iface_id,
 /* LOG_DATA_PROTOCOL_LOGGING_C must be enabled */
 /* dpli_log_full_packet() used to log packet; maximum of 256 bytes per
  * diag message; DPLI_BUILD_LOG_PACKET */
-static void handle_pcap_msg(struct log_hdr *lh, struct msgb *msg)
+static void handle_pcap_msg(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct dpl_hdr *dh = (struct dpl_hdr *) msgb_data(msg);
 	printf("PCAP(fl=0x%02x, ifn=0x%02x, prot=0x%02x, inst=%u, seq=%u, seg=%u): %s\n",
@@ -133,7 +133,9 @@ static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ L1X(LOG_DATA_PROTOCOL_LOGGING_C), handle_pcap_msg },
 };
 
+#if 0
 static __attribute__((constructor)) void on_dso_load_gsm(void)
 {
 	diag_log_reg_dispatch(log_tbl, ARRAY_SIZE(log_tbl));
 }
+#endif

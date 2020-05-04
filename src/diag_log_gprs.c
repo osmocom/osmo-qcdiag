@@ -18,6 +18,10 @@
 
 #include <stdio.h>
 
+#include <osmocom/core/gsmtap.h>
+#include <osmocom/core/gsmtap_util.h>
+#include <osmocom/core/utils.h>
+
 #include "diag_log.h"
 #include "protocol/diag_log_gsm.h"
 #include "protocol/diag_log_gprs_rlc.h"
@@ -25,7 +29,7 @@
 #include "protocol/diag_log_gprs_l1.h"
 
 
-static void handle_grr_state_msg(struct log_hdr *lh, struct msgb *msg)
+static void handle_grr_state_msg(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct diag_gprs_grr_state *rrs = (struct diag_gprs_grr_state *) msgb_data(msg);
 
@@ -33,7 +37,7 @@ static void handle_grr_state_msg(struct log_hdr *lh, struct msgb *msg)
 		get_value_string(diag_gprs_grr_st_vals, rrs->grr_state));
 }
 
-static void handle_rlc_ul_abnrml_rls(struct log_hdr *lh, struct msgb *msg)
+static void handle_rlc_ul_abnrml_rls(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_rlc_ul_abnrml_rls_counts *arc;
 	arc = (struct gprs_rlc_ul_abnrml_rls_counts *) msgb_data(msg);
@@ -42,17 +46,56 @@ static void handle_rlc_ul_abnrml_rls(struct log_hdr *lh, struct msgb *msg)
 		arc->access_reject_cnt, arc->arc_retry_cnt, arc->arc_wo_retry_cnt, arc->arc_sys_info_cnt);
 }
 
-static void handle_mac_sign_msg(struct log_hdr *lh, struct msgb *msg)
+static void handle_mac_sign_msg(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
+	uint32_t ctype = 0;
+	uint16_t arfcn = di->gsm_arfcn;
+	uint8_t *data;
+	unsigned int len;
 	struct gprs_mac_signalling_msg *msm;
 	msm = (struct gprs_mac_signalling_msg *) msgb_data(msg);
-	printf("MAC-SIGN-MSG { chan_type=%s, msg_type=%s, msg=%s }\n",
-		get_value_string(gprs_mac_chan_type_vals, msm->chan_type),
-		get_value_string(gprs_mac_msg_type_vals, msm->msg_type),
-			osmo_hexdump(msm->msg, msm->msg_len));
+//	printf("MAC-SIGN-MSG { chan_type=%s, msg_type=%s, msg=%s }\n",
+//		get_value_string(gprs_mac_chan_type_vals, msm->chan_type),
+//		get_value_string(gprs_mac_msg_type_vals, msm->msg_type),
+//			osmo_hexdump(msm->msg, msm->msg_len));
+
+	if(msm->msg_type == PACKET_CHANNEL_REQUEST)
+		return;
+	if(msm->chan_type == 255)
+		return;
+
+	switch(msm->chan_type & 0x7f){
+		case PACCH_RRBP_CHANNEL:
+		case UL_PACCH_CHANNEL:
+		case DL_PACCH_CHANNEL:
+			ctype = GSMTAP_CHANNEL_PACCH;
+			break;
+		default:
+			printf("Unhandled MAC-SIGN-MSG: %s  %u: %s\n",
+				get_value_string(gprs_mac_chan_type_vals, msm->chan_type & 0x7f),
+				msm->msg_len,
+				osmo_hexdump(msgb_data(msg), msm->msg_len));
+			return;
+	}
+
+	arfcn = msm->chan_type & 0x80 ? arfcn: arfcn | GSMTAP_ARFCN_F_UPLINK;
+
+	data = msm->msg;
+	len = msm->msg_len;
+
+	/* prepend flag */
+	data--;
+	*data = 1 << 6; /* PAYLOAD_TYPE_CTRL_NO_OPT_OCTET */
+	len++;
+
+
+	/* abis due to no lapdm header */
+	if (di->gsmtap && di->flags & DIAG_INST_F_GSMTAP_DECODED) {
+		gsmtap_send_ex(di->gsmtap, GSMTAP_TYPE_UM, arfcn, 0, ctype, 0, 0, 0, 0, data, len);
+	}
 }
 
-static void handle_llc_me_info(struct log_hdr *lh, struct msgb *msg)
+static void handle_llc_me_info(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct diag_gprs_llme_info *gli;
 	gli = (struct diag_gprs_llme_info *) msgb_data(msg);
@@ -62,7 +105,7 @@ static void handle_llc_me_info(struct log_hdr *lh, struct msgb *msg)
 		osmo_hexdump_nospc(gli->enc_key, sizeof(gli->enc_key)));
 }
 
-static void handle_llc_xid_info(struct log_hdr *lh, struct msgb *msg)
+static void handle_llc_xid_info(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct diag_gprs_llc_xid_info *glxi;
 
@@ -82,7 +125,7 @@ static void handle_llc_xid_info(struct log_hdr *lh, struct msgb *msg)
 }
 
 
-static void handle_llc_pdu_stats(struct log_hdr *lh, struct msgb *msg)
+static void handle_llc_pdu_stats(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct diag_gprs_llc_stats *gls;
 	gls = (struct diag_gprs_llc_stats *) msgb_data(msg);
@@ -94,7 +137,7 @@ static void handle_llc_pdu_stats(struct log_hdr *lh, struct msgb *msg)
 		gls->llpdu_tx, gls->llpdu_rx, gls->llpdu_fcs_err, gls->llpdu_frm_rej, gls->llpdu_tlli_err, gls->llpdu_addr_err, gls->llpdu_short_err);
 }
 
-static void handle_mac_state(struct log_hdr *lh, struct msgb *msg)
+static void handle_mac_state(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_mac_state_change *msc;
 	msc = (struct gprs_mac_state_change *) msgb_data(msg);
@@ -116,7 +159,7 @@ static void handle_mac_state(struct log_hdr *lh, struct msgb *msg)
 		get_value_string(gprs_mac_mode_vals, msc->mac_mode), name);
 }
 
-static void handle_mac_dl_tbf_est(struct log_hdr *lh, struct msgb *msg)
+static void handle_mac_dl_tbf_est(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_mac_dl_tbf_est *dte;
 	dte = (struct gprs_mac_dl_tbf_est *) msgb_data(msg);
@@ -125,7 +168,7 @@ static void handle_mac_dl_tbf_est(struct log_hdr *lh, struct msgb *msg)
 		dte->dl_tfi, dte->rlc_mode, dte->dl_ts_bmap, dte->is_egprs_tbf, dte->egprs_win_size, dte->egprs_link_qual_mode, dte->bep_period2);
 }
 
-static void handle_mac_ul_tbf_est(struct log_hdr *lh, struct msgb *msg)
+static void handle_mac_ul_tbf_est(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_mac_ul_tbf_est *ute;
 	ute = (struct gprs_mac_ul_tbf_est *) msgb_data(msg);
@@ -134,7 +177,7 @@ static void handle_mac_ul_tbf_est(struct log_hdr *lh, struct msgb *msg)
 		ute->tbf_req_cause, ute->acc_granted, ute->radio_prio, ute->peak_tput, ute->ul_tfi, ute->rlc_mode, ute->ul_ts_bmap, ute->is_egprs_tbf, ute->egprs_win_size, ute->resegment, ute->bep_period2);
 }
 
-static void handle_mac_dl_tbf_rel(struct log_hdr *lh, struct msgb *msg)
+static void handle_mac_dl_tbf_rel(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_mac_tbf_release *tr;
 	tr = (struct gprs_mac_tbf_release *) msgb_data(msg);
@@ -142,7 +185,7 @@ static void handle_mac_dl_tbf_rel(struct log_hdr *lh, struct msgb *msg)
 	printf("MAC-DL-TBF-REL { tfi=%u, fail_cause=%u }\n", tr->tfi, tr->fail_cause);
 }
 
-static void handle_mac_ul_tbf_rel(struct log_hdr *lh, struct msgb *msg)
+static void handle_mac_ul_tbf_rel(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_mac_tbf_release *tr;
 	tr = (struct gprs_mac_tbf_release *) msgb_data(msg);
@@ -150,7 +193,7 @@ static void handle_mac_ul_tbf_rel(struct log_hdr *lh, struct msgb *msg)
 	printf("MAC-DL-TBF-REL { tfi=%u, fail_cause=%u }\n", tr->tfi, tr->fail_cause);
 }
 
-static void handle_mac_dl_acknack(struct log_hdr *lh, struct msgb *msg)
+static void handle_mac_dl_acknack(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_mac_dl_acknack *da;
 	da = (struct gprs_mac_dl_acknack *) msgb_data(msg);
@@ -159,7 +202,7 @@ static void handle_mac_dl_acknack(struct log_hdr *lh, struct msgb *msg)
 		osmo_hexdump(msgb_data(msg)+1, msgb_length(msg)-1));
 }
 
-static void handle_mac_ul_acknack(struct log_hdr *lh, struct msgb *msg)
+static void handle_mac_ul_acknack(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	//struct gprs_mac_ul_acknack *ua;
 	//ua = (struct gprs_mac_ul_acknack *) msgb_data(msg);
@@ -168,7 +211,7 @@ static void handle_mac_ul_acknack(struct log_hdr *lh, struct msgb *msg)
 		osmo_hexdump(msgb_data(msg), msgb_length(msg)));
 }
 
-static void handle_rlc_ul_evt_cnt(struct log_hdr *lh, struct msgb *msg)
+static void handle_rlc_ul_evt_cnt(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_rlc_ul_event_counts *uec;
 	uec = (struct gprs_rlc_ul_event_counts *) msgb_data(msg);
@@ -177,7 +220,7 @@ static void handle_rlc_ul_evt_cnt(struct log_hdr *lh, struct msgb *msg)
 		uec->llc_event_cnt, uec->mac_event_cnt, uec->pl1_event_cnt, uec->tmr_event_cnt);
 }
 
-static void handle_rlc_ul_stats(struct log_hdr *lh, struct msgb *msg)
+static void handle_rlc_ul_stats(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_rlc_ul_stats *uls;
 	uls = (struct gprs_rlc_ul_stats *) msgb_data(msg);
@@ -187,7 +230,7 @@ static void handle_rlc_ul_stats(struct log_hdr *lh, struct msgb *msg)
 		get_value_string(gprs_rlc_ul_substate_vals, uls->rlc_ul_substate));
 }
 
-static void handle_rlc_dl_stats(struct log_hdr *lh, struct msgb *msg)
+static void handle_rlc_dl_stats(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_rlc_dl_stats *dls;
 	dls = (struct gprs_rlc_dl_stats *) msgb_data(msg);
@@ -196,7 +239,7 @@ static void handle_rlc_dl_stats(struct log_hdr *lh, struct msgb *msg)
 		get_value_string(gprs_rlc_dl_state_vals, dls->rlc_dl_state));
 }
 
-static void handle_rlc_ul_header(struct log_hdr *lh, struct msgb *msg)
+static void handle_rlc_ul_header(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_rlc_ul_header *ulh;
 	ulh = (struct gprs_rlc_ul_header *) msgb_data(msg);
@@ -206,7 +249,7 @@ static void handle_rlc_ul_header(struct log_hdr *lh, struct msgb *msg)
 		osmo_hexdump(ulh->ul_hdr, sizeof(ulh->ul_hdr)));
 }
 
-static void handle_rlc_rel(struct log_hdr *lh, struct msgb *msg)
+static void handle_rlc_rel(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_rlc_release_ind *rli;
 	rli = (struct gprs_rlc_release_ind *) msgb_data(msg);
@@ -218,12 +261,25 @@ static void handle_rlc_rel(struct log_hdr *lh, struct msgb *msg)
 	printf("RLC-%cL-RELEASE { tfi=%u, cause=%u }\n", ud, rli->tfi, rli->cause);
 }
 
-static void handle_gmm_ota_msg(struct log_hdr *lh, struct msgb *msg)
-{
-	printf("GMM-OTA-MESSAGE { FIXME }\n");
+static void handle_gmm_ota_msg(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
+{	uint32_t ctype = 0;
+	uint16_t arfcn = di->gsm_arfcn;
+	uint8_t *data;
+	unsigned int len;
+	struct gprs_sm_gmm_ota_msg *msm;
+	msm = (struct gprs_sm_gmm_ota_msg *) msgb_data(msg);
+
+	arfcn = msm->chan_type ? arfcn: arfcn | GSMTAP_ARFCN_F_UPLINK;
+
+	data = msm->msg;
+	len = msm->msg_len;
+
+	if (di->gsmtap && di->flags & DIAG_INST_F_GSMTAP_DECODED) {
+		gsmtap_send_ex(di->gsmtap, GSMTAP_TYPE_ABIS, arfcn, 0, ctype, 0, 0, 0, 0, data, len);
+	}
 }
 
-static void handle_ul_acknack_v2(struct log_hdr *lh, struct msgb *msg)
+static void handle_ul_acknack_v2(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_rlc_ul_acknack_params_v2 *ula;
 	ula = (struct gprs_rlc_ul_acknack_params_v2 *) msgb_data(msg);
@@ -233,7 +289,7 @@ static void handle_ul_acknack_v2(struct log_hdr *lh, struct msgb *msg)
 		ula->countdown_val, ula->va, ula->vs, ula->stall_ind, ula->rrb_high32, ula->rrb_low32);
 }
 
-static void handle_dl_acknack_v2(struct log_hdr *lh, struct msgb *msg)
+static void handle_dl_acknack_v2(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_rlc_dl_acknack_params_v2 *dla;
 	dla = (struct gprs_rlc_dl_acknack_params_v2 *) msgb_data(msg);
@@ -243,7 +299,7 @@ static void handle_dl_acknack_v2(struct log_hdr *lh, struct msgb *msg)
 		get_value_string(gprs_coding_schemes, dla->coding_scheme), dla->rrb_high32, dla->rrb_low32);
 }
 
-static void handle_tx_sched_res(struct log_hdr *lh, struct msgb *msg)
+static void handle_tx_sched_res(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_tx_sched_res *tsr;
 	tsr = (struct gprs_tx_sched_res *) msgb_data(msg);
@@ -264,7 +320,7 @@ static void handle_tx_sched_res(struct log_hdr *lh, struct msgb *msg)
 	printf(" ] }\n");
 }
 
-static void handle_gprs_power_control(struct log_hdr *lh, struct msgb *msg)
+static void handle_gprs_power_control(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_power_control *gpc;
 	gpc = (struct gprs_power_control *) msgb_data(msg);
@@ -275,7 +331,7 @@ static void handle_gprs_power_control(struct log_hdr *lh, struct msgb *msg)
 		gpc->alpha, gpc->derived_c, gpc->pmax);
 }
 
-static void handle_gprs_xfer_sum(struct log_hdr *lh, struct msgb *msg)
+static void handle_gprs_xfer_sum(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_xfer_sum *gxs;
 	gxs = (struct gprs_xfer_sum *) msgb_data(msg);
@@ -285,7 +341,7 @@ static void handle_gprs_xfer_sum(struct log_hdr *lh, struct msgb *msg)
 		gxs->dl_ptcch_ts, gxs->ta, gxs->usf_granularity, gxs->ul_bitmap_tn, gxs->dl_bitmap_tn);
 }
 
-static void handle_gprs_aif_sum(struct log_hdr *lh, struct msgb *msg)
+static void handle_gprs_aif_sum(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_air_if_summary *gaifs;
 	gaifs = (struct gprs_air_if_summary *) msgb_data(msg);
@@ -294,7 +350,7 @@ static void handle_gprs_aif_sum(struct log_hdr *lh, struct msgb *msg)
 		gaifs->fn, gaifs->band_ind, gaifs->dl_ts, gaifs->ul_ts, gaifs->rx_power);
 }
 
-static void handle_gprs_rx_msg_metrics_a_v2(struct log_hdr *lh, struct msgb *msg)
+static void handle_gprs_rx_msg_metrics_a_v2(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct gprs_rx_msg_metr_a_v2 *metr;
 	metr = (struct gprs_rx_msg_metr_a_v2 *) msgb_data(msg);
@@ -315,7 +371,7 @@ static inline uint32_t round_next_octet(uint32_t num_bits)
 	return num_bytes;
 }
 
-static void handle_egprs_rlc_epdan(struct log_hdr *lh, struct msgb *msg)
+static void handle_egprs_rlc_epdan(struct diag_instance *di, struct log_hdr *lh, struct msgb *msg)
 {
 	struct diag_egprs_rlc_epdan *epd = (struct diag_egprs_rlc_epdan *) msgb_data(msg);
 
@@ -331,6 +387,7 @@ static void handle_egprs_rlc_epdan(struct log_hdr *lh, struct msgb *msg)
 }
 
 static const struct diag_log_dispatch_tbl log_tbl[] = {
+#if 0
 	/* LLC */
 	{ GSM(LOG_GPRS_LLC_ME_INFO_C), handle_llc_me_info },		/* requested? */
 	{ GSM(LOG_GPRS_LLC_PDU_STATS_C), handle_llc_pdu_stats },	/* requested? */
@@ -351,15 +408,17 @@ static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ 0x5206, diag_log_hdl_default },
 	/* MAC */
 	{ GSM(LOG_GPRS_MAC_STATE_C), handle_mac_state },
+	#endif
 	{ GSM(LOG_GPRS_MAC_SIGNALLING_MESSAGE_C), handle_mac_sign_msg },
+	{ GSM(LOG_GPRS_SM_GMM_OTA_MESSAGE_C), handle_gmm_ota_msg },
+	#if 0
 	{ GSM(LOG_GPRS_MAC_DL_TBF_ESTABLISH_C), handle_mac_dl_tbf_est },
 	{ GSM(LOG_GPRS_MAC_UL_TBF_ESTABLISH_C), handle_mac_ul_tbf_est },
 	{ GSM(LOG_EGPRS_MAC_DL_ACKNACK_C), handle_mac_dl_acknack },
 	{ GSM(LOG_EGPRS_MAC_UL_ACKNACK_C), handle_mac_ul_acknack },
 	{ GSM(LOG_GPRS_MAC_DL_TBF_RELEASE_C), handle_mac_dl_tbf_rel },
 	{ GSM(LOG_GPRS_MAC_UL_TBF_RELEASE_C), handle_mac_ul_tbf_rel },
-	/* SM/GMM */
-	{ GSM(LOG_GPRS_SM_GMM_OTA_MESSAGE_C), handle_gmm_ota_msg },
+
 
 	/* Layer 1 */
 	{ 0x5230, diag_log_hdl_default },
@@ -383,6 +442,7 @@ static const struct diag_log_dispatch_tbl log_tbl[] = {
 	{ 0x508f, diag_log_hdl_default },
 
 	{ 0x5209, diag_log_hdl_default },
+	#endif
 };
 
 static __attribute__((constructor)) void on_dso_load_gprs(void)

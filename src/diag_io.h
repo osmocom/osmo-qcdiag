@@ -6,6 +6,7 @@
 
 #define DIAG_INST_F_HEXDUMP	0x00000001
 #define DIAG_INST_F_GSMTAP_DIAG	0x00000002
+#define DIAG_INST_F_GSMTAP_DECODED	0x00000004
 
 struct diag_instance {
 	int fd;
@@ -16,6 +17,11 @@ struct diag_instance {
 	} tx;
 	struct gsmtap_inst *gsmtap;
 	uint32_t flags;
+	uint32_t gsm_arfcn;
+	uint32_t umts_arfcn_ul;
+	uint32_t umts_arfcn_dl;
+	uint32_t lte_arfcn_ul;
+	uint32_t lte_arfcn_dl;
 };
 
 struct msgb *msgb_alloc_diag(void);

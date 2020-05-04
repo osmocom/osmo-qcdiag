@@ -70,6 +70,14 @@ struct gprs_mac_signalling_msg {
 	uint8_t msg[0];
 } __attribute__((packed));
 
+/* LOG_GPRS_SM_GMM_OTA_MESSAGE_C */
+struct gprs_sm_gmm_ota_msg {
+	uint8_t chan_type;
+	uint8_t msg_type;
+	uint16_t msg_len;
+	uint8_t msg[0];
+} __attribute__((packed));
+
 /* LOG_GPRS_MAC_DL_TBF_ESTABLISH_C */
 struct gprs_mac_dl_tbf_est {
 	uint8_t dl_tfi;

@@ -11,7 +11,7 @@ supported. We have tested it with the Quectel UC20, EC20 and
 EC25 devices.
 
 The convenient way to create a pcap dump of the messages is to run
-capture.sh -s /dev/ttyUSB0 -G
+./capture.sh -s /dev/ttyUSB0 -f outfilename.pcap
 This requires tcpdump, as well as the required permissions
 to capture, i.e. on ubuntu this can be conveniently achieved by
 sudo setcap cap_net_raw,cap_net_admin=ep /usr/sbin/tcpdump

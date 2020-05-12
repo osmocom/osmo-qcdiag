@@ -9,3 +9,35 @@ the necessary utility.
 In general all Qualcomm devices that export DIAG should be
 supported. We have tested it with the Quectel UC20, EC20 and
 EC25 devices.
+
+The convenient way to create a pcap dump of the messages is to run
+capture.sh -s /dev/ttyUSB0 -G
+This requires tcpdump, as well as the required permissions
+to capture, i.e. on ubuntu this can be conveniently achieved by
+sudo setcap cap_net_raw,cap_net_admin=ep /usr/sbin/tcpdump
+
+Additionally wireshark needs Edit->Preferences->Protocols->NAS-EPS
+"Force dissect as plain EPS" set to true, since capturing encrypted NAS
+messages is fairly useless (although possible), so unencrypted
+unprotected NAS messages are emitted, but wireshark will by default
+refuse to dissect plain messages because according to the spec most
+messages need to be at least integrity protected.
+
+Ubuntus ModemManager will interfere with the modem, so it needs to be
+told to leave the modem alone. This can be accomplished by adding the
+following line to 
+/etc/udev/rules.d/69-block-mm.rules :
+ATTRS{idVendor}=="2c7c" ATTRS{idProduct}=="0125", ENV{ID_MM_DEVICE_IGNORE}="1
+
+This example is for quectel ec25-e, adjust the USB VID:PID according to
+what lsusb tells you about your particular modem. The rules then need to
+be reloaded and ModemManager restarted:
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+sudo systemctl restart ModemManager
+
+There appears to be a bug on Ubuntu 18.04 and the ModemManager will still
+interfere, see 
+https://bugs.launchpad.net/ubuntu/+source/modemmanager/+bug/1827328
+
+

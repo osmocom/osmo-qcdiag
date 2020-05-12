@@ -101,6 +101,8 @@ static void handle_rrc_sig_msg(struct diag_instance *di, struct log_hdr *lh, str
 	uint16_t arfcn = 0;
 	struct diag_umts_rrc_msg *rrm = (struct diag_umts_rrc_msg *) msgb_data(msg);
 
+	di->rat_type = DIAG_INST_RAT_3G;
+
 //	printf("RRC: %s %u %u: %s\n",
 //		get_value_string(rrc_chan_types, rrm->chan_type),
 //		rrm->rb_id, rrm->length,

@@ -8,6 +8,11 @@
 #define DIAG_INST_F_GSMTAP_DIAG	0x00000002
 #define DIAG_INST_F_GSMTAP_DECODED	0x00000004
 
+
+#define DIAG_INST_RAT_2G	0x00000001
+#define DIAG_INST_RAT_3G	0x00000002
+#define DIAG_INST_RAT_4G	0x00000004
+
 struct diag_instance {
 	int fd;
 	struct {
@@ -22,6 +27,7 @@ struct diag_instance {
 	uint32_t umts_arfcn_dl;
 	uint32_t lte_arfcn_ul;
 	uint32_t lte_arfcn_dl;
+	uint32_t rat_type; /* tracking for 2g NAS */
 };
 
 struct msgb *msgb_alloc_diag(void);

@@ -38,6 +38,7 @@ static void handle_rr_sig_msg(struct diag_instance *di, struct log_hdr *lh, stru
 	unsigned int len;
 	struct diag_gsm_rr_msg *rm = (struct diag_gsm_rr_msg *) msgb_data(msg);
 
+	di->rat_type = DIAG_INST_RAT_2G;
 //	printf("RR: %s %02x %u: %s\n",
 //		get_value_string(diag_gsm_l2_chantype_vals, rm->chan_type & 0x7f),
 //		rm->msg_type, rm->length, osmo_hexdump(msgb_data(msg), rm->length));

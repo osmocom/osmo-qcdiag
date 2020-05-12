@@ -54,6 +54,7 @@ static void handle_mac_sign_msg(struct diag_instance *di, struct log_hdr *lh, st
 	unsigned int len;
 	struct gprs_mac_signalling_msg *msm;
 	msm = (struct gprs_mac_signalling_msg *) msgb_data(msg);
+	di->rat_type = DIAG_INST_RAT_2G;
 //	printf("MAC-SIGN-MSG { chan_type=%s, msg_type=%s, msg=%s }\n",
 //		get_value_string(gprs_mac_chan_type_vals, msm->chan_type),
 //		get_value_string(gprs_mac_msg_type_vals, msm->msg_type),
@@ -268,6 +269,7 @@ static void handle_gmm_ota_msg(struct diag_instance *di, struct log_hdr *lh, str
 	unsigned int len;
 	struct gprs_sm_gmm_ota_msg *msm;
 	msm = (struct gprs_sm_gmm_ota_msg *) msgb_data(msg);
+	di->rat_type = DIAG_INST_RAT_2G;
 
 	arfcn = msm->chan_type ? arfcn: arfcn | GSMTAP_ARFCN_F_UPLINK;
 

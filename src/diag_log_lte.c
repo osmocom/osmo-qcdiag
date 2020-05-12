@@ -142,6 +142,8 @@ static void handle_lte_rrc_ota_msg(struct diag_instance *di, struct log_hdr *lh,
 	struct diag_lte_rrc_ota_base_8plus_msg *r8p;
 	struct diag_lte_rrc_ota_base_msg *rrm = (struct diag_lte_rrc_ota_base_msg *) msgb_data(msg);
 
+	di->rat_type = DIAG_INST_RAT_4G;
+
 	if (rrm->ext_ver < 8 || rrm->ext_ver > 24) {
 		printf("Unhandled LTE OTA rel: %u\n", rrm->ext_ver);
 		return;
@@ -203,6 +205,8 @@ static void handle_lte_nas_msg(struct diag_instance *di, struct log_hdr *lh, str
 	uint32_t len;
 	bool sec_hdr = false;
 	bool is_ul = false;
+
+	di->rat_type = DIAG_INST_RAT_4G;
 
 	data = msgb_data(msg) + sizeof(struct diag_lte_rrc_nas_msg);
 	len = msgb_length(msg) - sizeof(struct diag_lte_rrc_nas_msg);

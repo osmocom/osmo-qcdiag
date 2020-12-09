@@ -38,6 +38,7 @@
 #include <osmocom/core/serial.h>
 #include <osmocom/core/gsmtap_util.h>
 #include <osmocom/core/gsmtap.h>
+#include <osmocom/core/logging.h>
 
 #include "diag_io.h"
 #include "diag_log.h"
@@ -231,6 +232,7 @@ int main(int argc, char **argv)
 	int rc;
 
 	handle_options(argc, argv);
+	log_init(0,0);
 
 	if (!serial_path) {
 		printf("Invoke with %s -s PATH_TO_SERIAL\n", argv[0]);

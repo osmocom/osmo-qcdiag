@@ -16,6 +16,11 @@ This requires tcpdump, as well as the required permissions
 to capture, i.e. on ubuntu this can be conveniently achieved by
 sudo setcap cap_net_raw,cap_net_admin=ep /usr/sbin/tcpdump
 
+In order to distinguish multiple different modems in the capture file
+passing a GSMTAP destination ip is possible with the -i parameter, i.e.
+./capture.sh -s /dev/ttyUSB0 -f outfilename.pcap -i 127.0.0.4
+This will "just work" on linux, since there is a default 127.0.0.0/8 route.
+
 Additionally wireshark needs Edit->Preferences->Protocols->NAS-EPS
 "Force dissect as plain EPS" set to true, since capturing encrypted NAS
 messages is fairly useless (although possible), so unencrypted

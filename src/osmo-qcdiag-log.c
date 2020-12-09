@@ -38,6 +38,7 @@
 #include <osmocom/core/serial.h>
 #include <osmocom/core/gsmtap_util.h>
 #include <osmocom/core/gsmtap.h>
+#include <osmocom/core/socket.h>
 #include <osmocom/core/logging.h>
 
 #include "diag_io.h"
@@ -52,6 +53,7 @@
 struct diag_instance di;
 static char *serial_path = 0;
 static uint32_t cfg_flags = 0;
+static char *gsmtap_ip = "localhost";
 
 static void do_configure(struct diag_instance *di)
 {
@@ -184,6 +186,7 @@ static void print_help()
 		"  -G --gsmtap		GSMTAP messages sent to localhost\n"
 		"  -Q --qcomdbg		plain QC DIAG GSMTAP messages\n"
 		"  -H --hexdump		console output of rx/tx messages\n"
+		"  -i --ip		address the GSMTAP packets should be sent to (default 127.0.0.1)\n"
 		);
 }
 
@@ -197,10 +200,11 @@ static void handle_options(int argc, char **argv)
 			{ "qcomdbg", 0, 0, 'Q' },
 			{ "hexdump", 0, 0, 'H' },
 			{ "serial-path", 1, 0, 's' },
+			{ "ip", 1, 0, 'i' },
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "hGQHs:", long_options, &option_index);
+		c = getopt_long(argc, argv, "hGQHs:i:", long_options, &option_index);
 		if (c == -1)
 			break;
 
@@ -220,10 +224,36 @@ static void handle_options(int argc, char **argv)
 		case 's':
 			serial_path = optarg;
 			break;
+		case 'i':
+			gsmtap_ip = optarg;
+			break;
 		}
 	}
 }
 
+/* special function that allows to bind to local nonlocal ips like 127.0.0.x with x != 1 */
+static int gsmtap_source_add_local_sink(struct gsmtap_inst *gti)
+{
+	int rc;
+	struct sockaddr_storage ss;
+	socklen_t ss_len = sizeof(ss);
+
+	if (gti->ofd_wq_mode)
+			return -1;
+
+	rc = getpeername(gsmtap_inst_fd(gti), (struct sockaddr *)&ss, &ss_len);
+	if (rc < 0)
+		return rc;
+
+	rc = osmo_sock_init_sa((struct sockaddr *)&ss, SOCK_DGRAM,
+				   IPPROTO_UDP,
+				   OSMO_SOCK_F_BIND |
+				   OSMO_SOCK_F_UDP_REUSEADDR);
+	if (rc >= 0)
+		return rc;
+
+	return -ENODEV;
+}
 
 int main(int argc, char **argv)
 {
@@ -258,15 +288,14 @@ int main(int argc, char **argv)
 	tio.c_cc[VTIME] = 0;
 	rc = tcsetattr(di.fd, TCSANOW, &tio);
 
-
-	di.gsmtap = gsmtap_source_init("localhost", GSMTAP_UDP_PORT, 0);
+	di.gsmtap = gsmtap_source_init(gsmtap_ip, GSMTAP_UDP_PORT, 0);
 	if (di.gsmtap == 0) {
 		printf("error initializing gsmtap source!\n");
 		return EXIT_FAILURE;
 	}
 
 	di.flags = cfg_flags;
-	rc = gsmtap_source_add_sink(di.gsmtap);
+	rc = gsmtap_source_add_local_sink(di.gsmtap);
 	if (rc < 0) {
 		printf("error initializing gsmtap sink!\n");
 		return EXIT_FAILURE;

@@ -192,7 +192,7 @@ enum diag_gprs_llme_state {
 	DIAG_GPRS_LLMES_TLLI_ASS	= 1,
 	DIAG_GPRS_LLMES_TEST_MODE	= 2,
 };
-const struct value_string diag_gprs_llme_st_vals[4];
+extern const struct value_string diag_gprs_llme_st_vals[4];
 
 /* LOG_GPRS_LLC_ME_INFO_C */
 struct diag_gprs_llme_info {
@@ -282,7 +282,7 @@ enum diag_gsm_sapi0_state {
 	DIAG_SAPI0_ST_LINK_SUSP,
 	DIAG_SAPI0_ST_UA_PEND,
 };
-const struct value_string diag_gsm_l2_sapi0_st_vals[10];
+extern const struct value_string diag_gsm_l2_sapi0_st_vals[10];
 
 enum diag_gsm_sapi3_state {
 	DIAG_SAPI3_ST_NULL,
@@ -294,7 +294,7 @@ enum diag_gsm_sapi3_state {
 	DIAG_SAPI3_ST_TMR_RECOV,
 	DIAG_SAPI3_ST_UA_PEND,
 };
-const struct value_string diag_gsm_l2_sapi3_st_vals[9];
+extern const struct value_string diag_gsm_l2_sapi3_st_vals[9];
 
 enum diag_gsm_l2_event {
 	DIAG_L2_EV_NO_EVENT,
@@ -325,7 +325,7 @@ enum diag_gsm_l2_event {
 	DIAG_L2_EV_UA_SENT,
 	DIAG_L2_EV_FORCED_SUSPEND_REQ,
 };
-const struct value_string diag_gsm_l2_event_vals[28];
+extern const struct value_string diag_gsm_l2_event_vals[28];
 
 struct diag_gsm_l2_state {
 	uint8_t sapi;
@@ -343,7 +343,7 @@ enum diag_gsm_l2_chantype {
 	DIAG_L2_CHT_FACCH_F	= 6,
 	DIAG_L2_CHT_FACCH_H	= 7,
 };
-const struct value_string diag_gsm_l2_chantype_vals[9];
+extern const struct value_string diag_gsm_l2_chantype_vals[9];
 
 struct diag_gsm_l2_transm_status {
 	uint8_t sapi;

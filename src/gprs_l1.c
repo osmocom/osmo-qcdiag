@@ -20,14 +20,14 @@
 
 #include "protocol/diag_log_gprs_l1.h"
 
-const struct value_string gprs_tx_ul_chans[4] = {
+const struct value_string gprs_tx_ul_chans[] = {
 	{ DIAG_TX_UL_CH_T_PRACH,	"PRACK" },
 	{ DIAG_TX_UL_CH_T_UL_PTCCH,	"UL-PTCCH" },
 	{ DIAG_TX_UL_CH_T_UL_PACCH_PDTCH, "UL-PACCH-PDTCH" },
 	{ 0, NULL }
 };
 
-const struct value_string gprs_coding_schemes[16] = {
+const struct value_string gprs_coding_schemes[] = {
 	{ DIAG_GPRS_CS_CS1,	"CS1" },
 	{ DIAG_GPRS_CS_CS2,	"CS2" },
 	{ DIAG_GPRS_CS_CS3,	"CS3" },

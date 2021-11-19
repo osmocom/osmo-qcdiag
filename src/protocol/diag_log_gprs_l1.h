@@ -72,7 +72,7 @@ enum gprs_tx_ul_chan_t {
 	DIAG_TX_UL_CH_T_UL_PTCCH,
 	DIAG_TX_UL_CH_T_UL_PACCH_PDTCH,
 };
-extern const struct value_string gprs_tx_ul_chans[4];
+extern const struct value_string gprs_tx_ul_chans[];
 
 enum gprs_coding_scheme {
 	DIAG_GPRS_CS_CS1,
@@ -91,7 +91,7 @@ enum gprs_coding_scheme {
 	DIAG_GPRS_CS_MCS8,
 	DIAG_GPRS_CS_MCS9,
 };
-extern const struct value_string gprs_coding_schemes[16];
+extern const struct value_string gprs_coding_schemes[];
 
 struct gprs_tx_sched_res {
 	uint32_t	fn;

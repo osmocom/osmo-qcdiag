@@ -20,7 +20,7 @@
 
 #include "protocol/diag_log_gprs_rlc.h"
 
-struct value_string gprs_rlc_ul_state_vals[8] = {
+struct value_string gprs_rlc_ul_state_vals[] = {
 	{ US_NULL,		"US_NULL" },
 	{ US_AWAIT_ASS,		"US_AWAIT_ASS" },
 	{ US_ACK_XFER,		"US_AWAIT_XFER" },
@@ -31,7 +31,7 @@ struct value_string gprs_rlc_ul_state_vals[8] = {
 	{ 0, NULL }
 };
 
-struct value_string gprs_rlc_ul_substate_vals[5] = {
+struct value_string gprs_rlc_ul_substate_vals[] = {
 	{ RALS_NULL,		"RALS_NULL" },
 	{ RALS_AWAIT_TX_COMPLETE, "RALS_AWAIT_TX_COMPLETE" },
 	{ RALS_CURRENT_PDU_TX_COMPLETED, "RALS_CURRENT_PDU_TX_COMPLETED" },
@@ -39,7 +39,7 @@ struct value_string gprs_rlc_ul_substate_vals[5] = {
 	{ 0, NULL }
 };
 
-struct value_string gprs_rlc_dl_state_vals[7] = {
+struct value_string gprs_rlc_dl_state_vals[] = {
 	{ DS_NULL,		"DS_NULL" },
 	{ DS_RX_ACK,		"DS_RX_ACK" },
 	{ DS_RX_UNACK,		"DS_RX_UNACK" },

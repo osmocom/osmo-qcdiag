@@ -158,7 +158,7 @@ enum diag_gsm_rr_st {
 	DIAG_RR_ST_RESET		= 23,
 	DIAG_RR_ST_W2G_BACKGROUND_PLN_SEARCH = 24,
 };
-extern const struct value_string diag_gsm_rr_st_vals[25];
+extern const struct value_string diag_gsm_rr_st_vals[];
 
 /* LOG_GSM_RR_STATE_C */
 struct diag_gsm_rr_state {
@@ -178,7 +178,7 @@ enum diag_gprs_grr_st {
 	DIAG_GRR_ST_BG_PLMN_SEARCH	= 7,
 	DIAG_GRR_ST_PCCO	= 8,
 };
-extern const struct value_string diag_gprs_grr_st_vals[9];
+extern const struct value_string diag_gprs_grr_st_vals[];
 
 /* LOG_GPRS_GRR_STATE_C */
 struct diag_gprs_grr_state {
@@ -192,7 +192,7 @@ enum diag_gprs_llme_state {
 	DIAG_GPRS_LLMES_TLLI_ASS	= 1,
 	DIAG_GPRS_LLMES_TEST_MODE	= 2,
 };
-extern const struct value_string diag_gprs_llme_st_vals[4];
+extern const struct value_string diag_gprs_llme_st_vals[];
 
 /* LOG_GPRS_LLC_ME_INFO_C */
 struct diag_gprs_llme_info {

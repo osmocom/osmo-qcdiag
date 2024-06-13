@@ -12,4 +12,4 @@ osmo-qcdiag-log: diagchar_hdlc.o diag_io.o osmo-qcdiag-log.o diag_msg.o protocol
 	$(CC) $(shell pkg-config --libs $(LIBS)) -o $@ $^
 
 clean:
-	@rm -f osmo-qcdiag-log *.o
+	$(RM) osmo-qcdiag-log *.o
